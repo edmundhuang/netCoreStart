@@ -28,7 +28,7 @@ EF Core 2.0 是EF的最新版本，但还没有包括所有的 EF 6.x 功能。 
 教程中构建的是一个简单的大学网站。  
 用户可以查看和更新学生，课程和教师信息。 下面是您将要创建的一些页面。
 ![index](Images/demo.png)
-![edit](./images/student-edit.png)
+![edit](Images/student-edit.png)
 
 网站的 UI 风格与内置模板生成的 UI 风格保持一致，本教程主要关注如何使用 Entity Framework。
 
@@ -38,13 +38,13 @@ EF Core 2.0 是EF的最新版本，但还没有包括所有的 EF 6.x 功能。 
 * 从左窗格中选择 已安装 -> Visual C＃ -> Web 。
 * 中间窗格选择 ASP.NET Core Web 应用程序。
 * 输入 ContosoUniversity 作为项目名称，然后单击确定。
-![newProject](./images/newproject.png)
+![newProject](./Images/newproject.png)
 * 等待 "新建 ASP.NET Core Web 应用程序" 对话框出现
 * 选择 ASP.NET Core 2.0 和 Web应用程序(模型视图控制器)模板。
 * 注意：本教程需要 ASP.NET Core 2.0 和 EF Core 2.0 或更高版本 - 确保未选择ASP.NET Core 1.1。
 * 确保认证设置为“不进行身份验证”。
 * 单击 “确定” 按钮。
-![newCore](./images/newcore.png)
+![newCore](./Images/newcore.png)
 
 ## 设置网站样式
 简单修改几个位置，设置站点菜单，布局和主页。  
@@ -113,7 +113,7 @@ EF Core 2.0 是EF的最新版本，但还没有包括所有的 EF 6.x 功能。 
 ```
 
 按 CTRL+F5 运行项目或从菜单中选择 调试-> 开始执行（不调试）， 您将在浏览器中看到本教程中实现的首页。
-![homepage](./images/home-page.png)
+![homepage](./Images/home-page.png)
 
 ## Entity Framework Core NuGet packages 
 *译者注： 此标题不翻译好过翻译*  
@@ -126,7 +126,7 @@ EF Core 2.0 是EF的最新版本，但还没有包括所有的 EF 6.x 功能。 
 ### 创建数据模型
 接下来，您将为Contoso大学应用程序创建实体课程。 您将从以下三个实体开始。
 
-![entity](./images/data-model-diagram.png)
+![entity](./Images/data-model-diagram.png)
 
 在 Student 与 Enrollement 实体间是一个一对多的关系， 在 Course 与 Enrollment 间也存在一对多关系。 换句话说，学生可以参加任意数量的课程，课程可以有任意数量的学生注册。
 
