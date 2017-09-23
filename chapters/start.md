@@ -252,3 +252,168 @@ namespace ContosoUniversity.Data
 }
 ```
 
+#### 应用数据上下文 - 使用依赖注入
+
+ASP.NET Core 默认使用依赖注入技术。 服务（如EF数据库上下文）在应用程序启动期间通过依赖注入注册实例。 那些需要使用服务的组件通过构造函数参数获得服务的实例。 稍后我们可以看到控制器构造函数获取上下文实例的代码。
+
+要将 ```SchoolContext``` 注册为服务，请打开 ```Startup.cs```，并按照如下代码修改 ```ConfigureServices``` 方法。
+``` cs
+//Startup.cs
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddDbContext<SchoolContext>(options =>
+        options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+    services.AddMvc();
+}
+```
+
+通过调用 DbContextOptionsBuilder 对象上的方法将连接字符串的名称传递给上下文。 对于本地开发，ASP.NET Core 配置系统从 appsettings.json 文件读取连接字符串。
+
+打开appsettings.json文件并添加一个连接字符串，如下例所示。
+
+``` json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=ContosoUniversity1;Trusted_Connection=True;MultipleActiveResultSets=true"
+  },
+  "Logging": {
+    "IncludeScopes": false,
+    "LogLevel": {
+      "Default": "Warning"
+    }
+  }
+}
+```
+
+##### SQL Server Express LocalDB
+连接字符串指定 SQL Server LocalDB 数据库。 LocalDB 是 SQL Server Express 数据库引擎的轻量级版本，旨在用于应用程序开发，而不是生产用途。 LocalDB 按需启动并以用户模式运行，因此没有复杂的配置。 默认情况下，LocalDB在 C：/Users/<user> 目录中创建 .mdf 数据库文件。
+
+#### 添加代码，使用测试数据初始化数据库
+
+EF 将为您创建一个空数据库。 在本节中，您将编写一个创建数据库后调用的方法，以便使用测试数据进行填充。
+
+在这里，您将使用 EnsureCreated 方法自动创建数据库。 在后面的教程中，您将看到如何使用  ```Code First Migration``` (代码优先迁移) 来更改数据库架构而不是删除和重新创建数据库来处理架构更改。
+
+在 ```Data``` 文件夹中，创建一个名为 DbInitializer.cs 的新类文件，并使用以下代码替换模板代码，这些代码将在需要时创建数据库，并将测试数据加载到新数据库中。
+
+``` cs
+//DbInitializer.cs
+
+using ContosoUniversity.Models;
+using System;
+using System.Linq;
+
+namespace ContosoUniversity.Data
+{
+    public static class DbInitializer
+    {
+        public static void Initialize(SchoolContext context)
+        {
+            context.Database.EnsureCreated();
+
+            // Look for any students.
+            if (context.Students.Any())
+            {
+                return;   // DB has been seeded
+            }
+
+            var students = new Student[]
+            {
+            new Student{FirstMidName="Carson",LastName="Alexander",EnrollmentDate=DateTime.Parse("2005-09-01")},
+            new Student{FirstMidName="Meredith",LastName="Alonso",EnrollmentDate=DateTime.Parse("2002-09-01")},
+            new Student{FirstMidName="Arturo",LastName="Anand",EnrollmentDate=DateTime.Parse("2003-09-01")},
+            new Student{FirstMidName="Gytis",LastName="Barzdukas",EnrollmentDate=DateTime.Parse("2002-09-01")},
+            new Student{FirstMidName="Yan",LastName="Li",EnrollmentDate=DateTime.Parse("2002-09-01")},
+            new Student{FirstMidName="Peggy",LastName="Justice",EnrollmentDate=DateTime.Parse("2001-09-01")},
+            new Student{FirstMidName="Laura",LastName="Norman",EnrollmentDate=DateTime.Parse("2003-09-01")},
+            new Student{FirstMidName="Nino",LastName="Olivetto",EnrollmentDate=DateTime.Parse("2005-09-01")}
+            };
+            foreach (Student s in students)
+            {
+                context.Students.Add(s);
+            }
+            context.SaveChanges();
+
+            var courses = new Course[]
+            {
+            new Course{CourseID=1050,Title="Chemistry",Credits=3},
+            new Course{CourseID=4022,Title="Microeconomics",Credits=3},
+            new Course{CourseID=4041,Title="Macroeconomics",Credits=3},
+            new Course{CourseID=1045,Title="Calculus",Credits=4},
+            new Course{CourseID=3141,Title="Trigonometry",Credits=4},
+            new Course{CourseID=2021,Title="Composition",Credits=3},
+            new Course{CourseID=2042,Title="Literature",Credits=4}
+            };
+            foreach (Course c in courses)
+            {
+                context.Courses.Add(c);
+            }
+            context.SaveChanges();
+
+            var enrollments = new Enrollment[]
+            {
+            new Enrollment{StudentID=1,CourseID=1050,Grade=Grade.A},
+            new Enrollment{StudentID=1,CourseID=4022,Grade=Grade.C},
+            new Enrollment{StudentID=1,CourseID=4041,Grade=Grade.B},
+            new Enrollment{StudentID=2,CourseID=1045,Grade=Grade.B},
+            new Enrollment{StudentID=2,CourseID=3141,Grade=Grade.F},
+            new Enrollment{StudentID=2,CourseID=2021,Grade=Grade.F},
+            new Enrollment{StudentID=3,CourseID=1050},
+            new Enrollment{StudentID=4,CourseID=1050},
+            new Enrollment{StudentID=4,CourseID=4022,Grade=Grade.F},
+            new Enrollment{StudentID=5,CourseID=4041,Grade=Grade.C},
+            new Enrollment{StudentID=6,CourseID=1045},
+            new Enrollment{StudentID=7,CourseID=3141,Grade=Grade.A},
+            };
+            foreach (Enrollment e in enrollments)
+            {
+                context.Enrollments.Add(e);
+            }
+            context.SaveChanges();
+        }
+    }
+}
+```
+
+代码检查数据库中是否有学生，如果没有，则假定数据库是新的，并且需要使用测试数据进行种子。它将测试数据加载到数组而不是 List <T> 集合来优化性能。
+
+在Program.cs中，修改Main方法在应用程序启动时执行以下操作：
+* 从依赖注入容器获取数据库上下文实例。
+* 调用种子方法，传递给它的上下文。
+* 种子方法完成时销毁上下文。
+
+``` cs
+public static void Main(string[] args)
+{
+    var host = BuildWebHost(args);
+
+    using (var scope = host.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        try
+        {
+            var context = services.GetRequiredService<SchoolContext>();
+            DbInitializer.Initialize(context);
+        }
+        catch (Exception ex)
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "An error occurred while seeding the database.");
+        }
+    }
+
+    host.Run();
+}
+```
+
+在较旧的教程中，您可能会在Startup.cs中的Configure方法中看到类似的代码。 我们建议您仅使用Configure方法来设置请求管道。 应用程序启动代码属于Main方法。
+
+首次运行应用程序时，将创建数据库并播放测试数据。 无论何时更改数据模型，都可以删除数据库，更新种子方法，并以新的数据库重新开始重新启动。 在后面的教程中，您将看到在数据模型更改时如何修改数据库，而不删除和重新创建它。
+
+#### 创建控制器和视图
+接下来，您将使用 Visual Studio 脚手架添加 MVC 控制器和视图，并使用 EF 来查询和保存数据。
+
+自动创建CRUD操作方法和视图称为脚手架。 脚手架与代码生成器不同之处在于，脚手架代码只是基础代码，您可以根据自己的需要进行修改，而通常情况下，您不会修改生成器生成的代码。 当您需要自定义生成器生成的代码，可以使用部分类，或者在情况发生改变时时重新生成代码。
+
+* 右键单击解决方案资源管理器中的 Controllers 文件夹，然后选择 添加 -> 。
