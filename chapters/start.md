@@ -113,7 +113,7 @@ EF Core 2.0 是EF的最新版本，但还没有包括所有的 EF 6.x 功能。 
 ```
 
 按 CTRL+F5 运行项目或从菜单中选择 调试-> 开始执行（不调试）， 您将在浏览器中看到本教程中实现的首页。
-![homepage](../images/home-page.png)
+![homepage](./images/home-page.png)
 
 ## Entity Framework Core NuGet packages 
 *译者注： 此标题不翻译好过翻译*  
@@ -126,7 +126,7 @@ EF Core 2.0 是EF的最新版本，但还没有包括所有的 EF 6.x 功能。 
 ### 创建数据模型
 接下来，您将为Contoso大学应用程序创建实体课程。 您将从以下三个实体开始。
 
-![entity](../images/data-model-diagram.png)
+![entity](./images/data-model-diagram.png)
 
 在 Student 与 Enrollement 实体间是一个一对多的关系， 在 Course 与 Enrollment 间也存在一对多关系。 换句话说，学生可以参加任意数量的课程，课程可以有任意数量的学生注册。
 
