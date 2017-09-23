@@ -27,7 +27,7 @@ EF Core 2.0 是EF的最新版本，但还没有包括所有的 EF 6.x 功能。 
 ## Contoso 大学网站应用
 教程中构建的是一个简单的大学网站。  
 用户可以查看和更新学生，课程和教师信息。 下面是您将要创建的一些页面。
-<img src="./images/demo.png" width="540" height="416" />
+![index](Images/demo.png)
 ![edit](./images/student-edit.png)
 
 网站的 UI 风格与内置模板生成的 UI 风格保持一致，本教程主要关注如何使用 Entity Framework。
