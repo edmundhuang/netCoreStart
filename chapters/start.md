@@ -27,8 +27,8 @@ EF Core 2.0 是EF的最新版本，但还没有包括所有的 EF 6.x 功能。 
 ## Contoso 大学网站应用
 教程中构建的是一个简单的大学网站。  
 用户可以查看和更新学生，课程和教师信息。 下面是您将要创建的一些页面。
-![index](../images/demo.png)
-![edit](../images/student-edit.png)
+<img src="./images/demo.png" width="540" height="416" />
+![edit](./images/student-edit.png)
 
 网站的 UI 风格与内置模板生成的 UI 风格保持一致，本教程主要关注如何使用 Entity Framework。
 
@@ -38,13 +38,13 @@ EF Core 2.0 是EF的最新版本，但还没有包括所有的 EF 6.x 功能。 
 * 从左窗格中选择 已安装 -> Visual C＃ -> Web 。
 * 中间窗格选择 ASP.NET Core Web 应用程序。
 * 输入 ContosoUniversity 作为项目名称，然后单击确定。
-![newProject](../images/newproject.png)
+![newProject](./images/newproject.png)
 * 等待 "新建 ASP.NET Core Web 应用程序" 对话框出现
 * 选择 ASP.NET Core 2.0 和 Web应用程序(模型视图控制器)模板。
 * 注意：本教程需要 ASP.NET Core 2.0 和 EF Core 2.0 或更高版本 - 确保未选择ASP.NET Core 1.1。
 * 确保认证设置为“不进行身份验证”。
 * 单击 “确定” 按钮。
-![newCore](../images/newcore.png)
+![newCore](./images/newcore.png)
 
 ## 设置网站样式
 简单修改几个位置，设置站点菜单，布局和主页。  
