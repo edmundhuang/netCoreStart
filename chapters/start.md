@@ -38,13 +38,16 @@ EF Core 2.0 是EF的最新版本，但还没有包括所有的 EF 6.x 功能。 
 * 从左窗格中选择 已安装 -> Visual C＃ -> Web 。
 * 中间窗格选择 ASP.NET Core Web 应用程序。
 * 输入 ContosoUniversity 作为项目名称，然后单击确定。
-![newProject](./Images/newproject.png)
+
+![newProject](./Images/newProject.png)
+
 * 等待 "新建 ASP.NET Core Web 应用程序" 对话框出现
 * 选择 ASP.NET Core 2.0 和 Web应用程序(模型视图控制器)模板。
 * 注意：本教程需要 ASP.NET Core 2.0 和 EF Core 2.0 或更高版本 - 确保未选择ASP.NET Core 1.1。
 * 确保认证设置为“不进行身份验证”。
 * 单击 “确定” 按钮。
-![newCore](./Images/newcore.png)
+
+![newCore](./Images/newCore.png)
 
 ## 设置网站样式
 简单修改几个位置，设置站点菜单，布局和主页。  
