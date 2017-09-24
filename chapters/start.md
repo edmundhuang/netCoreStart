@@ -289,7 +289,7 @@ public void ConfigureServices(IServiceCollection services)
 ##### SQL Server Express LocalDB
 连接字符串指定 SQL Server LocalDB 数据库。 LocalDB 是 SQL Server Express 数据库引擎的轻量级版本，旨在用于应用程序开发，而不是生产用途。 LocalDB 按需启动并以用户模式运行，因此没有复杂的配置。 默认情况下，LocalDB在 C：/Users/<user> 目录中创建 .mdf 数据库文件。
 
-#### 添加代码，使用测试数据初始化数据库
+##### 添加代码，使用测试数据初始化数据库
 
 EF 将为您创建一个空数据库。 在本节中，您将编写一个创建数据库后调用的方法，以便使用测试数据进行填充。
 
@@ -411,9 +411,123 @@ public static void Main(string[] args)
 
 首次运行应用程序时，将创建数据库并植入测试数据。 无论何时更改数据模型，都可以删除数据库，更新种子方法，并以新的数据库重新开始重新启动。 在后面的教程中，您将看到在数据模型更改时如何修改数据库，而不删除和重新创建它。
 
-#### 创建控制器和视图
+##### 创建控制器和视图
 接下来，您将使用 Visual Studio 脚手架添加 MVC 控制器和视图，并使用 EF 来查询和保存数据。
 
 自动创建CRUD操作方法和视图称为脚手架。 脚手架与代码生成器不同之处在于，脚手架代码只是基础代码，您可以根据自己的需要进行修改，而通常情况下，您不会修改生成器生成的代码。 当您需要自定义生成器生成的代码，可以使用部分类，或者在情况发生改变时时重新生成代码。
 
-* 右键单击解决方案资源管理器中的 Controllers 文件夹，然后选择 添加 -> 。
+* 右键单击解决方案资源管理器中的 Controllers 文件夹，然后选择 添加 -> 控制器。
+* 在“添加基架”对话框中，选择“视图使用 Entity Framework 的 MVC 控制器”，点击“添加”
+* 在“添加控制器”对话框中：
+    * 模型类选择 ```Student```。
+    * 数据上下文类选择 ```SchoolContext```
+    * 点击 “添加”。
+![newController](./Images/newController.png)  
+当您单击添加时，Visual Studio 脚手架引擎创建一个 StudentsController.cs 文件和一组与控制器一起使用的视图（.cshtml文件）。  
+
+（脚手架引擎还可以为您创建数据库上下文，如果您不像以前在本教程中那样手动创建它。 您可以通过单击数据上下文类右侧的加号在“添加控制器”框中指定新的上下文类。 然后Visual Studio将创建您的DbContext类以及控制器和视图。）
+
+你会注意到控制器将一个 SchoolContext 作为一个构造函数参数。
+``` cs
+namespace ContosoUniversity.Controllers
+{
+    public class StudentsController : Controller
+    {
+        private readonly SchoolContext _context;
+
+        public StudentsController(SchoolContext context)
+        {
+            _context = context;
+        }
+```
+
+ASP.NET 依赖注入负责将 SchoolContext 的一个实例传递到控制器中。 前文中，已经 
+在 Startup.cs 文件中配置 SchoolContext 的依赖注入。
+
+控制器包含一个 ```Index``` 方法，用于显示数据库中的所有学生。 该方法通过读取数据库上下文实例的 ```Students``` 属性获取学生实体集中的学生列表：
+
+``` cs
+public async Task<IActionResult> Index()
+{
+    return View(await _context.Students.ToListAsync());
+}
+```
+
+稍后将介绍此代码中的异步编程知识。
+
+视图 Views/Students/Index.cshtml 使用 HTML 表格显示学生列表。  （此处未对脚手架生成的代码进行任何修改，不再贴代码占用文章篇幅。 ）
+
+按 CTRL + F5 运行项目或从菜单中选择 调试 -> 开始执行（不调试）。
+
+单击 ```Student``` 链接，可以看到 DbInitializer.Initialize 方法中插入的测试数据。 根据浏览器窗口的狭窄程度，您会看到页面顶部的 ```Student``` 链接，也有可能您必须单击右上角的导航图标才能看到隐藏菜单中的链接。
+
+![narrowPage](./Images/home-page-narrow.png)
+![student-index](./Images/students-index.png)
+
+##### 查看数据库
+
+当您启动应用程序时，DbInitializer.Initialize 方法调用 EnsureCreated 。 EF 看到没有数据库，所以它创建了一个，然后 Initialize 方法代码的其余部分用数据填充数据库。 在 Visual Studio 中，您可以使用 SQL Server 对象资源管理器（SSOX）查看数据库。
+
+如果 SSOX 窗口尚未打开，在 Visual Studio 中，点击菜单 “视图” -> “SQL Server 对象资源管理器”。
+在 SSOX 中，单击（localdb）\ MSSQLLocalDB > 数据库，然后单击 ContosoUniversity1，也就是我们前面在 appsettings.json 文件中设置的连接字符串中数据库名称。
+展开“表”节点以查看数据库中的表。
+
+![ssox](./Images/ssox.png)
+
+右键单击 ```Student``` 表，然后单击 “查看数据” 以查看已创建的列和插入到表中的数据行。
+
+![student-table](./Images/ssox-student-table.png)
+
+.mdf 和.ldf 数据库文件位于C:\Users\<你的用户名> 文件夹中。
+因为您在应用程序启动时运行的初始化程序方法中调用 EnsureCreated ，所以现在可以更改 Student 类，删除数据库，再次运行应用程序，并自动重新创建数据库以匹配您的更改。 例如，如果您将 EmailAddress 属性添加到 Student 类，则会在重新创建的表中看到一个新的EmailAddress 列。
+
+##### 约定
+
+基于约定优于配置的原则，Entity Framework 构建一个数据库时，你所需书写的代码很少。
+
+* DbSet 属性的名称用作表名。 对于未由DbSet属性引用的实体，实体类名用作表名。
+
+* 实体属性名称用于列名。
+
+* 名为 ID 或 classnameID 的实体属性被识别为主键属性。
+
+* 使用 导航属性名+实体主键名 命名的属性，会被自动识别为外键，例如： StudentID 由 Student （导航属性） + ID （Student实体主键名 ）组成。外键也可以简单只使用实体主键名，例如 EnrollmentID (外键) 与 EnrollmentID （Enrollment 实体的主键）。
+
+约定可以被覆盖。例如，你可以显式指定表名，如本教程前面所看到的。 您可以设置列名称并将任何属性设置为主键或外键，这将在后面的教程中提及。
+
+##### 异步代码
+
+ASP.NET Core和EF Core的默认使用异步编程。
+
+Web 服务器的可用线程数量有限，在高负载情况下，所有可用线程都可能都在使用。 当发生这种情况时，服务器无法处理新的请求，直到线程被释放。 使用同步代码时，许多线程可能会被绑定，而实际上它们并没有做任何工作，因为它们正在等待 I/O 完成。 使用异步代码，当进程正在等待I/O 完成时，其线程将被释放，供服务器用于处理其他请求。 因此，异步代码可以更有效地使用服务器资源，并且使服务器能够无延迟地处理更多流量。
+
+异步代码在运行时引入了少量的开销，但是对于低流量情况，性能下降可以忽略不计，而对于高流量情况，潜在的性能提升是巨大的。
+在以下代码中，async 关键字， Task<T> 返回值，await 关键字和 ToListAsync 方法共同构成异步执行代码。
+
+``` cs
+public async Task<IActionResult> Index()
+{
+    return View(await _context.Students.ToListAsync());
+}
+```
+
+* ```async``` 关键字告诉编译器为方法体生成回调函数，并自动创建返回的 ```Task <IActionResult>``` 对象。
+
+* 返回类型 ```Task<IActionResult>``` 表示正在进行的工作，其结果类型为 ```IActionResult``` 。
+
+* ```await``` 关键字告诉编译器将该方法分为两部分。 第一部分以异步启动的操作结束。 第二部分被放入回调方法，该操作在操作完成时被调用。
+
+* ```ToListAsync``` 是 ```ToList``` 扩展方法的异步版本。
+
+当您编写使用实体框架的异步代码时，需要注意的一些事情：
+
+* 只有会引发查询或将命令发送到数据库的语句才需要异步执行。 这包括例如 ```ToListAsync```，```SingleOrDefaultAsync``` 和 ```SaveChangesAsync```。 它不应该包括，例如，只是更改IQueryable的语句，类似 ```var students = context.Students.Where（s => s.LastName ==  "Davolio"）``` 这样的语句。
+
+* EF上下文不是线程安全的：不要尝试并行执行多个操作。 当您调用任何异步 EF 方法时，请始终使用 await 关键字。
+
+* 如果您想利用异步代码的性能优势，请确保您正在使用的任何库包（例如用于分页）也使用异步，如果他们调用任何导致查询发送到数据库的方法。
+
+有关.NET中异步编程的更多信息，请参阅 [Async Overview](https://docs.microsoft.com/dotnet/articles/standard/async)。
+
+## 小结
+您现在创建了一个简单的应用程序，使用 Entity Framework Core 和 SQL Server Express LocalDB 存储和显示数据。 在下面的教程中，您将学习如何执行基本的 CRUD（创建，读取，更新和删除）操作。
