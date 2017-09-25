@@ -422,7 +422,9 @@ public static void Main(string[] args)
     * 模型类选择 ```Student```。
     * 数据上下文类选择 ```SchoolContext```
     * 点击 “添加”。
+
 ![newController](./Images/newController.png)  
+
 当您单击添加时，Visual Studio 脚手架引擎创建一个 StudentsController.cs 文件和一组与控制器一起使用的视图（.cshtml文件）。  
 
 （脚手架引擎还可以为您创建数据库上下文，如果您不像以前在本教程中那样手动创建它。 您可以通过单击数据上下文类右侧的加号在“添加控制器”框中指定新的上下文类。 然后Visual Studio将创建您的DbContext类以及控制器和视图。）
