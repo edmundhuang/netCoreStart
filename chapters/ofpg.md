@@ -1,3 +1,5 @@
+# 排序、过滤、分页、分组
+
 Contoso 大学示例 Web 应用程序演示如何使用实体框架（EF）Core 2.0 和 Visual Studio 2017 创建 ASP.NET Core 2.0 MVC Web 应用程序。 如欲了解更多本教程相关信息，请参阅 [一、入门](./chapters/start.md)
 
 在前面的教程，你实现了一组 Student 实体基本的 CRUD 页面。 在本节中，您将向 Student 列表页添加排序、 筛选和分页功能， 还将创建一个进行简单分组的页面。
@@ -43,13 +45,12 @@ public async Task<IActionResult> Index(string sortOrder)
 
 第一次请求索引页时，没有附加查询字符串。 在默认的 Switch default 方法中按 LastName 排序。 当用户单击列标题，相应的 sortOrder 将会出现在查询字符串中。两个 ViewData 元素 （ NameSortParm 和 DateSortParm ）供视图用于配置列标题超链接查询字符串。
 
-These are ternary statements. The first one specifies that if the sortOrder parameter is null or empty, NameSortParm should be set to "name_desc"; otherwise, it should be set to an empty string. These two statements enable the view to set the column heading hyperlinks as follows:
+这是三元选择语句。 如果 sortOrder 参数为 null 或为空，NameSortParm 应设置为 "name_desc"; 否则，设置为一个空字符串。 这两个语句在视图中用于设置列标题超链接，如下所示：
 
 ``` cs
 ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
 ViewData["DateSortParm"] = sortOrder == "Date" ? "date_desc" : "Date";
 ```
-这是三元选择语句。 如果 sortOrder 参数为 null 或为空，NameSortParm 应设置为 "name_desc"; 否则，设置为一个空字符串。 这两个语句在视图中用于设置列标题超链接，如下所示：
 
 | 当前排序情况 | LastName 链接 | Date 链接 |
 |---|---|---|
