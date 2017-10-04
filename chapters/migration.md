@@ -197,7 +197,7 @@ info: Microsoft.EntityFrameworkCore.Database.Command[200101]
 Done.
 ```
 
-像我们在第一章中一样，打开 SQL Server 对象浏览器检查数据库。 您会注意到多了一个 ```__EFMigrationsHistory``` 数据表，这个表用于跟踪已应用于数据库的迁移。查看此表数据，可以看到有一行数据对应刚刚的第一个迁移。 （前面的 CLI 输出示例中的最后一个日志显示的是创建此行的 INSERT 语句。）
+像我们在第一章中一样，打开 ```SQL Server 对象资源管理器``` 检查数据库。 您会注意到多了一个 ```__EFMigrationsHistory``` 数据表，这个表用于跟踪已应用于数据库的迁移。查看此表数据，可以看到有一行数据对应刚刚的第一个迁移。 （前面的 CLI 输出示例中的最后一个日志显示的是创建此行的 INSERT 语句。）
 
 运行应用程序，可以看到一切如常运行。
 
@@ -205,9 +205,18 @@ Done.
 
 ### 命令行界面 (CLI) vs. 程序包管理器控制台 (PMC)
 
-The EF tooling for managing migrations is available from .NET Core CLI commands or from PowerShell cmdlets in the Visual Studio Package Manager Console (PMC) window. This tutorial shows how to use the CLI, but you can use the PMC if you prefer.
+管理迁移的 EF 工具，即可运行于 .NET CLI 命令，也可以运行于 Visual Studio 的程序包控制台 （PMC） 窗口的 PowerShell cmdlets 中。 本教程演示如何使用 CLI， 不过如果你愿意也可以使用 PMC 。
 
+PMC 命令的 EF 命令位于 ```Microsoft.EntityFrameworkCore.Tools``` 包中。 此包已包含在 ```Microsoft.AspNetCore.All``` metapackage，因此你不必另外安装。
 
+**重要** ：这个包和你在 ```.csproj``` 文件中安装的 CLI 不是同一个。 这个包名称以 ```Tools``` 结束， 而 CLI 包中的名称以 ```Tools.DotNet``` 结束。
 
+有关 CLI 命令的详细信息，请参阅  [.NET Core CLI](https://docs.microsoft.com/ef/core/miscellaneous/cli/dotnet)
+
+有关 PMC 命令的详细信息，请参阅 [Package Manager Console (Visual Studio)](https://docs.microsoft.com/ef/core/miscellaneous/cli/powershell) 。
+
+## 小结
+
+在本教程中，您已了解如何创建并应用您的第一个迁移。 在下一步的教程中，您将开始通过扩展数据模型来查看更高级的主题。随着教程的展开，您将创建并应用更多的迁移。
 
 
