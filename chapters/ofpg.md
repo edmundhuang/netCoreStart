@@ -220,5 +220,317 @@ namespace ContosoUniversity
 
 ACreateAsync方法用于而不是一个构造函数创建PaginatedList<T>对象，因为构造函数不能运行异步代码。
 
+### 在 ```Index``` 方法中添加分页功能
 
+在 ```StudentsController.cs```，替换 ```Index``` 方法替换为以下代码。
 
+``` cs
+public async Task<IActionResult> Index(
+    string sortOrder,
+    string currentFilter,
+    string searchString,
+    int? page)
+{
+    ViewData["CurrentSort"] = sortOrder;
+    ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+    ViewData["DateSortParm"] = sortOrder == "Date" ? "date_desc" : "Date";
+
+    if (searchString != null)
+    {
+        page = 1;
+    }
+    else
+    {
+        searchString = currentFilter;
+    }
+
+    ViewData["CurrentFilter"] = searchString;
+
+    var students = from s in _context.Students
+                   select s;
+    if (!String.IsNullOrEmpty(searchString))
+    {
+        students = students.Where(s => s.LastName.Contains(searchString)
+                               || s.FirstMidName.Contains(searchString));
+    }
+    switch (sortOrder)
+    {
+        case "name_desc":
+            students = students.OrderByDescending(s => s.LastName);
+            break;
+        case "Date":
+            students = students.OrderBy(s => s.EnrollmentDate);
+            break;
+        case "date_desc":
+            students = students.OrderByDescending(s => s.EnrollmentDate);
+            break;
+        default:
+            students = students.OrderBy(s => s.LastName);
+            break;
+    }
+
+    int pageSize = 3;
+    return View(await PaginatedList<Student>.CreateAsync(students.AsNoTracking(), page ?? 1, pageSize));
+}
+```
+
+代码在方法中添加了 page, sortOrder, currentFilter 三个参数。
+
+第一次显示页面，或如果用户未单击分页或排序链接，则所有参数将都为 ```null```。 单击分页链接时，如果页变量将包含要显示的页码。
+
+ViewData("CurrentSort") 保存当前排序以供视图使用。在视图的分页链接中包含排序，翻页的时候才能保持排序不变。
+
+ViewData("CurrentFilter")保存当前过滤字符串以供视图使用。在视图的分页链接中包含过滤字符串，翻页额时候才能保持过滤不变。
+
+如果在分页期间，搜索字符串被更改，因为新的过滤导致显示不同的数据，页码必须被重置为第一页。在文本框中输入并按下提交按钮时，搜索字符串改变。在这种情况下，searchString 参数不为空。
+
+``` cs
+if (searchString != null)
+{
+    page = 1;
+}
+else
+{
+    searchString = currentFilter;
+}
+```
+
+在 ```Index``` 方法结尾， ```PaginatedList.CreateAsync``` 方法转化学生查询至一个支持分页功能的单页学生集合，然后这个集合被传递给视图。
+
+``` cs
+return View(await PaginatedList<Student>.CreateAsync(students.AsNoTracking(), page ?? 1, pageSize));
+```
+
+```PaginatedList.CreateAsync``` 方法使用参数 ```page``` （页码）和```pageSize``` （页大小）作为参数。 ```page``` 参数后的两个 ```?``` 代表 ```null 合并运算符``` 。```null 合并运算符``` 定义了可为空类型的默认值；```page ?? 1``` 表达式意味着，如果 ```page``` 具有一个值（不为空），则返回 ```page```， 如果为空则返回 ```1``` 。
+
+###  在 ```Index``` 视图中添加分页链接
+
+在 ```Views/Students/Index.cshtml```，替换为以下代码。
+
+``` html
+@model PaginatedList<ContosoUniversity.Models.Student>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+
+<form asp-action="Index" method="get">
+    <div class="form-actions no-color">
+        <p>
+            Find by name: <input type="text" name="SearchString" value="@ViewData["currentFilter"]" />
+            <input type="submit" value="Search" class="btn btn-default" /> |
+            <a asp-action="Index">Back to Full List</a>
+        </p>
+    </div>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["NameSortParm"]" asp-route-currentFilter="@ViewData["CurrentFilter"]">Last Name</a>
+            </th>
+            <th>
+                First Name
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["DateSortParm"]" asp-route-currentFilter="@ViewData["CurrentFilter"]">Enrollment Date</a>
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.LastName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FirstMidName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EnrollmentDate)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@{
+    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+}
+
+<a asp-action="Index"
+   asp-route-sortOrder="@ViewData["CurrentSort"]"
+   asp-route-page="@(Model.PageIndex - 1)"
+   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+   class="btn btn-default @prevDisabled">
+    Previous
+</a>
+<a asp-action="Index"
+   asp-route-sortOrder="@ViewData["CurrentSort"]"
+   asp-route-page="@(Model.PageIndex + 1)"
+   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+   class="btn btn-default @nextDisabled">
+    Next
+</a>
+```
+*译者注：Markdown 语法无法实现代码内高亮，如不清楚修改的位置，请参考微软原文。* 
+
+页面顶部的 ```@model``` 指定视图现在获取 ```PaginatedList<T>``` 对象而不是 ```List<T>``` 对象。
+
+列标题上的链接使用查询字符串将当前的搜索字符串传递到控制器，以便用户可以在过滤后的结果中进行排序：
+
+``` html
+<a asp-action="Index" asp-route-sortOrder="@ViewData["DateSortParm"]" asp-route-currentFilter ="@ViewData["CurrentFilter"]">Enrollment Date</a>
+```
+
+The paging buttons are displayed by tag helpers:
+分页按钮使用 ```tag helpers``` 进行显示
+``` html
+<a asp-action="Index"
+   asp-route-sortOrder="@ViewData["CurrentSort"]"
+   asp-route-page="@(Model.PageIndex - 1)"
+   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+   class="btn btn-default @prevDisabled">
+   Previous
+</a>
+```
+
+运行应用并转到 Student 页面。
+
+![paging](./Images/paging.png)
+
+在不同排序状态下点击分页链接，以确认分页功能正常工作。然后尝试搜索后再分页，验证分页功能在不同排序和过滤条件下都正常工作。
+
+## 创建一个显示学生统计信息的关于页面
+
+在 Contoso 大学网站的 ```About``` 页面， 将显示每天有多少学生进行注册，这需要对数据进行分组，并在分组上做计算。要完成此任务，您需要执行以下操作：
+* 创建一个用于传递数据到视图的 ViewModel 类。
+
+* 修改 ```HomeController``` 中的 ```About``` 方法。
+
+* 修改 ```About``` 视图。
+
+### 创建 ViewModel 类
+
+在 ```Models``` 文件夹中创建一个 ```SchoolViewModels``` 文件夹
+在这个新的文件夹中，添加一个文件名为 ```EnrollmentDateGroup.cs``` 的类，并输入以下代码：
+``` cs
+using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace ContosoUniversity.Models.SchoolViewModels
+{
+    public class EnrollmentDateGroup
+    {
+        [DataType(DataType.Date)]
+        public DateTime? EnrollmentDate { get; set; }
+
+        public int StudentCount { get; set; }
+    }
+}
+
+```
+
+### 修改 HomeController
+
+在 ```HomeController.cs``` 文件, 顶部加入如下语句：
+
+``` cs
+using Microsoft.EntityFrameworkCore;
+using ContosoUniversity.Data;
+using ContosoUniversity.Models.SchoolViewModels;
+```
+
+在类中添加一个数据库上下文变量 _context， ASP.NET Core 依赖注入将为此变量提供实例。
+
+``` cs
+public class HomeController : Controller
+{
+    private readonly SchoolContext _context;
+
+    public HomeController(SchoolContext context)
+    {
+        _context = context;
+    }
+```
+
+将 About 方法替换为以下代码：
+``` cs
+public async Task<ActionResult> About()
+{
+    IQueryable<EnrollmentDateGroup> data = 
+        from student in _context.Students
+        group student by student.EnrollmentDate into dateGroup
+        select new EnrollmentDateGroup()
+        {
+            EnrollmentDate = dateGroup.Key,
+            StudentCount = dateGroup.Count()
+        };
+    return View(await data.AsNoTracking().ToListAsync());
+}
+```
+
+LINQ 语句将 Student 实体进行分组，计算每个分组中的实体数量，并将结果存放在 ```EnrollmentDateGroup``` ViewModel 对象中。
+
+> ### 备注
+> 在 EF Core 1.0 版本中， 整个结果集返回到客户端，并在客户端上进行分组。在某些情况下，这会导致性能问题。请使用实际生产环境规模的数据测试性能，如有必要，使用原始 SQL 在服务器进行分组。 有关如何使用原始的 SQL 的信息，请参阅本系列最后一个教程。
+
+### 修改 ```About``` 视图
+
+替换 Views/Home/About.cshtml 为如下代码：
+
+``` html
+@model IEnumerable<ContosoUniversity.Models.SchoolViewModels.EnrollmentDateGroup>
+
+@{
+    ViewData["Title"] = "Student Body Statistics";
+}
+
+<h2>Student Body Statistics</h2>
+
+<table>
+    <tr>
+        <th>
+            Enrollment Date
+        </th>
+        <th>
+            Students
+        </th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.EnrollmentDate)
+            </td>
+            <td>
+                @item.StudentCount
+            </td>
+        </tr>
+    }
+</table>
+```
+
+运行应用，转至 About 页面。 每个日期的学生注册数量显示于表格中。
+
+![about.png](./Images/about.png)
+
+## 小结
+
+在本教程中，你已了解如何执行排序、 筛选、 分页和分组。 在下一步的教程中，你将了解如何通过使用迁移来处理数据模型更改。
