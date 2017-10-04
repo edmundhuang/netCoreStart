@@ -43,14 +43,16 @@ public async Task<IActionResult> Index(string sortOrder)
 
 代码从 URL 中接收 sortOrder 查询参数，此查询参数由 ASP.NET Core MVC 提供。参数是值为 "Name" 或 "Date" 的字符串，有时候后面会带有下划线和字符串 "desc" 来指定降序顺序。 默认排序顺序为升序。
 
-第一次请求索引页时，没有附加查询字符串。 在默认的 Switch default 方法中按 LastName 排序。 当用户单击列标题，相应的 sortOrder 将会出现在查询字符串中。两个 ViewData 元素 （ NameSortParm 和 DateSortParm ）供视图用于配置列标题超链接查询字符串。
+第一次请求索引页时，没有附加查询字符串。 在默认的 Switch default 方法中按 LastName 排序。 当用户单击列标题，相应的 sortOrder 将会出现在查询字符串中。
 
-这是三元选择语句。 如果 sortOrder 参数为 null 或为空，NameSortParm 应设置为 "name_desc"; 否则，设置为一个空字符串。 这两个语句在视图中用于设置列标题超链接，如下所示：
+两个 ViewData 元素 （ NameSortParm 和 DateSortParm ）供视图用于配置列标题超链接查询字符串。
 
 ``` cs
 ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
 ViewData["DateSortParm"] = sortOrder == "Date" ? "date_desc" : "Date";
 ```
+
+这是三元选择语句。 如果 sortOrder 参数为 null 或为空，NameSortParm 应设置为 "name_desc"; 否则，设置为一个空字符串。 这两个语句在视图中用于设置列标题超链接，如下所示：
 
 | 当前排序情况 | LastName 链接 | Date 链接 |
 |---|---|---|
