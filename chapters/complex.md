@@ -83,9 +83,9 @@ namespace ContosoUniversity.Models
     {
         public int ID { get; set; }
 
-        <font color="yellow">[StringLength(50)]</font>
+        <span style="background-color: #FF0;">[StringLength(50)]</span>
         public string LastName { get; set; }
-        <font color="yellow">[StringLength(50, ErrorMessage = "First name cannot be longer than 50 characters.")]</font>
+        <span style="background-color: #FF0;">[StringLength(50, ErrorMessage = "First name cannot be longer than 50 characters.")]</span>
         public string FirstMidName { get; set; }
         
 
@@ -102,6 +102,4 @@ namespace ContosoUniversity.Models
 The StringLength attribute won't prevent a user from entering white space for a name. You can use the RegularExpression attribute to apply restrictions to the input. For example, the following code requires the first character to be upper case and the remaining characters to be alphabetical:
 
 StringLength属性不会阻止的用户的空白区域输入一个名称。 你可以使用RegularExpression要将限制应用到的输入属性。 例如，下面的代码要求的第一个字符是大写且其余的字符是按字母顺序排列：
-
-
 
