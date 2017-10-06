@@ -1058,9 +1058,13 @@ dotnet ef database update
 
 在 SSOX （SQL Server 资源管理器）打开数据库， 展开表节点以查看是否已创建的所有表。（如果您的 SSOX 仍旧保留打开状态，则点击刷新按钮。）
 
+![ssox-tables.png](./Images/ssox-tables.png)
+
 运行应用程序，触发初始化代码并填充测试数据到数据库。
 
 右键点击 CourseAssignment 表，选择“查看数据”来验证其中确有数据。
+
+![ssox-ci-data.png](./Images/ssox-ci-data.png)
 
 ## 小结
 
