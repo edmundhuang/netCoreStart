@@ -544,6 +544,527 @@ namespace ContosoUniversity.Models
 
 外键属性和导航属性反映了以下关系：
 
-An enrollment record is for a single course, so there's a CourseID foreign key property and a Course navigation property:
+一个注册记录只对应一个课程， 因此这儿有一个 CourseID 外键属性和一个 Course 导航属性。
 
-注册记录已经是单个的课程，因此CourseID外键属性和Course导航属性：
+``` cs
+public int CourseID { get; set; }
+public Course Course { get; set; }
+```
+
+一个注册记录只对应一个学生， 因此这儿有一个 StudentID 外键属性和一个 Student 导航属性。
+
+``` cs
+public int StudentID { get; set; }
+public Student Student { get; set; }
+```
+
+## 多对多关系
+
+在 Student 和 Course 实体间，存在着一个多对多的关系， Enrollment 实体作为一个多对多的关联表在数据库中承载关系及相关信息。承载相关信息意味着 Enrollment 数据表除了包含关联表的外键之外，还包含其他数据。（在这里，包含一个主键和一个年级属性）
+
+下图在一个实体关系图表中展示这些关系。（这个关系图表使用 Entity Framework Power Tools for EF 6.x 生成； 创建关系图表不在本教程范围内，此处关系图表仅用于展示用途。）
+
+![student-course.png](./Images/student-course.png)
+
+Each relationship line has a 1 at one end and an asterisk (*) at the other, indicating a one-to-many relationship.
+
+每一条关系连线都有一端显示 ```1``` 和另外一端显示 ```*``` ，以表明这是一个一对多的关系。
+
+If the Enrollment table didn't include grade information, it would only need to contain the two foreign keys CourseID and StudentID. In that case, it would be a many-to-many join table without payload (or a pure join table) in the database. The Instructor and Course entities have that kind of many-to-many relationship, and your next step is to create an entity class to function as a join table without payload.
+
+假设 Enrollment 表不包括年级信息，只需要包含两个外键 CourseID 和 StudentID 。 在这种情况下， 它将是一个没有有效负载的多对多关联表（或者说是一个纯粹的关联表）。 Instructor 和 Course 实体就具有这种多对多关系， 您下一步就将创建一个没有有效负载的实体类充当关联表。
+
+（EF 6.x 支持隐式多对多关联表，但 EF Core 不支持。 有关详细信息，请参阅 [discussion in the EF Core GitHub repository](https://github.com/aspnet/EntityFramework/issues/1368) 。）
+
+## ```CourseAssignment``` 实体
+
+![courseassignment-entity.png](./Images/courseassignment-entity.png)
+
+使用如下代码创建 Models/CourseAssignment.cs 文件：
+
+``` cs
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ContosoUniversity.Models
+{
+    public class CourseAssignment
+    {
+        public int InstructorID { get; set; }
+        public int CourseID { get; set; }
+        public Instructor Instructor { get; set; }
+        public Course Course { get; set; }
+    }
+}
+```
+
+#### 关联实体名称
+
+在数据库中需要有一个关联表用于 Instructor <-> Courses 的多对多关系， 并且以实体集合方式体现。 常规做法是命名一个关联实体 EntityName1EntityName2， 在这里就是 CourseInstructor 。 但是， 我们建议您选择一个可以描述这种关系的名称。 数据模型一开始总是简单的，然后逐步增长，从不需要有效负载的纯关联表到需要有效负载。理想状态下，关联实体将在业务领域中拥有其自然名称。例如，书籍(Books)和客户(Customers)之间可以通过评分(Ratings)进行关联。 对于当前这个关系， CourseAssignment 是一个比 CourseInstructor 更好的选择。
+
+#### 复合键
+
+由于外键不可为空，并且唯一的标识每一个数据行，这儿无需一个另外的主键。 InstructorID 和 CourseID 属性可以充当复合主键。 在 EF 中标识复合主键的唯一方式是使用 Fluent API 方式 （无法通过特性标注实现）。在下一节中您将看到如何配置复合主键。
+
+复合主键确保了当你有多个行对应一个课程，以及多个行对应一个教师，同时又可以避免出现多个行对应同一个教师同一个课程的情况出现。 Enrollment 关联实体定义了自身的主键， 因此可能会出现这种重复项。 若要防止此类重复的存在，您可以在外键字段上添加唯一索引，或者配置 Enrollment 使用类似于 CourseAssignment 的复合主键。 有关详细信息，请参阅 [Index （索引）](https://docs.microsoft.com/ef/core/modeling/indexes) 。
+
+## 更新数据库上下文
+
+在 Data/SchoolContext.cs 文件中， 添加如下高亮显示的代码：
+
+<pre>
+using ContosoUniversity.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace ContosoUniversity.Data
+{
+    public class SchoolContext : DbContext
+    {
+        public SchoolContext(DbContextOptions<SchoolContext> options) : base(options)
+        {
+        }
+
+        public DbSet<Course> Courses { get; set; }
+        public DbSet<Enrollment> Enrollments { get; set; }
+        public DbSet<Student> Students { get; set; }
+<span style="background-color: #FF0;">        public DbSet<Department> Departments { get; set; }
+        public DbSet<Instructor> Instructors { get; set; }
+        public DbSet<OfficeAssignment> OfficeAssignments { get; set; }
+        public DbSet<CourseAssignment> CourseAssignments { get; set; }</span>
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Course>().ToTable("Course");
+            modelBuilder.Entity<Enrollment>().ToTable("Enrollment");
+            modelBuilder.Entity<Student>().ToTable("Student");
+            <span style="background-color: #FF0;">
+            modelBuilder.Entity<Department>().ToTable("Department");
+            modelBuilder.Entity<Instructor>().ToTable("Instructor");
+            modelBuilder.Entity<OfficeAssignment>().ToTable("OfficeAssignment");
+            modelBuilder.Entity<CourseAssignment>().ToTable("CourseAssignment");
+
+            modelBuilder.Entity<CourseAssignment>()
+                .HasKey(c => new { c.CourseID, c.InstructorID });</span>
+        }
+    }
+}
+</pre>
+
+这些代码添加了新的实体，并配置 CourseAssignment 实体的复合主键。
+
+## 使用 Fluent API 代替 attributes （特性）
+
+DbContext 类中的 OnModelCreating 方法使用 fluent API 配置 EF 的行为。 之所以将这些 API 称为 fluent（流畅的），因为通常用于将多个方法连接成为一条语句，比如下面这个来自 [EF Core documentation](https://docs.microsoft.com/ef/core/modeling/#methods-of-configuration) 的例子：
+
+``` cs
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Blog>()
+        .Property(b => b.Url)
+        .IsRequired();
+}
+```
+
+在本教程中， 仅为不能使用特性标注的数据库映射使用 fluent API 。然而， 您也可以用 fluent API 指定大部分您可以使用特性实现的格式，验证和映射规则。 某些特性，如 MinimumLength 不能使用 fluent API 设定。 如前所述， MinimumLength 不会修改架构，而仅用于客户端和服务端验证规则。
+
+有些开发人员中意排他的使用 fluent API 方式，这样可以保持实体类干净。 如果您愿意，可以混合使用特性和 fluent API 方式， 只有少数自定义项只能使用 fluent API 完成，但通常的做法是选择其中的一种方式，并尽可能贯彻始终。 如果您同时使用两者，请记住，当两者设置产生冲突的时候， fluent API 将会覆盖特性的设置。
+
+有关 attributes vs. fluent API 的更多信息，请参阅 [Methods of configuration](https://docs.microsoft.com/ef/core/modeling/#methods-of-configuration) 。
+
+## 显示关系的实体图表
+
+下图是使用 Entity Framework Power Tools 创建的完整学校模型的图表。
+
+![diagram.png](./Images/diagram.png)
+
+除了一条“一对多”关系线外， 您还可以在 Instructor 和 OfficeAssignment 实体间看到一个“一对零或一”关系线（1 - 0..1），以及 Instructor 和 Department 实体间的“零或一对多”关系线（0..1 - *）。
+
+## 给数据库填充测试数据
+
+使用以下代码替换 Data/DbInitializer.cs 文件中的代码，以提供新建实体的测试数据。
+
+``` cs
+using System;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using ContosoUniversity.Models;
+
+namespace ContosoUniversity.Data
+{
+    public static class DbInitializer
+    {
+        public static void Initialize(SchoolContext context)
+        {
+            //context.Database.EnsureCreated();
+
+            // Look for any students.
+            if (context.Students.Any())
+            {
+                return;   // DB has been seeded
+            }
+
+            var students = new Student[]
+            {
+                new Student { FirstMidName = "Carson",   LastName = "Alexander",
+                    EnrollmentDate = DateTime.Parse("2010-09-01") },
+                new Student { FirstMidName = "Meredith", LastName = "Alonso",
+                    EnrollmentDate = DateTime.Parse("2012-09-01") },
+                new Student { FirstMidName = "Arturo",   LastName = "Anand",
+                    EnrollmentDate = DateTime.Parse("2013-09-01") },
+                new Student { FirstMidName = "Gytis",    LastName = "Barzdukas",
+                    EnrollmentDate = DateTime.Parse("2012-09-01") },
+                new Student { FirstMidName = "Yan",      LastName = "Li",
+                    EnrollmentDate = DateTime.Parse("2012-09-01") },
+                new Student { FirstMidName = "Peggy",    LastName = "Justice",
+                    EnrollmentDate = DateTime.Parse("2011-09-01") },
+                new Student { FirstMidName = "Laura",    LastName = "Norman",
+                    EnrollmentDate = DateTime.Parse("2013-09-01") },
+                new Student { FirstMidName = "Nino",     LastName = "Olivetto",
+                    EnrollmentDate = DateTime.Parse("2005-09-01") }
+            };
+
+            foreach (Student s in students)
+            {
+                context.Students.Add(s);
+            }
+            context.SaveChanges();
+
+            var instructors = new Instructor[]
+            {
+                new Instructor { FirstMidName = "Kim",     LastName = "Abercrombie",
+                    HireDate = DateTime.Parse("1995-03-11") },
+                new Instructor { FirstMidName = "Fadi",    LastName = "Fakhouri",
+                    HireDate = DateTime.Parse("2002-07-06") },
+                new Instructor { FirstMidName = "Roger",   LastName = "Harui",
+                    HireDate = DateTime.Parse("1998-07-01") },
+                new Instructor { FirstMidName = "Candace", LastName = "Kapoor",
+                    HireDate = DateTime.Parse("2001-01-15") },
+                new Instructor { FirstMidName = "Roger",   LastName = "Zheng",
+                    HireDate = DateTime.Parse("2004-02-12") }
+            };
+
+            foreach (Instructor i in instructors)
+            {
+                context.Instructors.Add(i);
+            }
+            context.SaveChanges();
+
+            var departments = new Department[]
+            {
+                new Department { Name = "English",     Budget = 350000,
+                    StartDate = DateTime.Parse("2007-09-01"),
+                    InstructorID  = instructors.Single( i => i.LastName == "Abercrombie").ID },
+                new Department { Name = "Mathematics", Budget = 100000,
+                    StartDate = DateTime.Parse("2007-09-01"),
+                    InstructorID  = instructors.Single( i => i.LastName == "Fakhouri").ID },
+                new Department { Name = "Engineering", Budget = 350000,
+                    StartDate = DateTime.Parse("2007-09-01"),
+                    InstructorID  = instructors.Single( i => i.LastName == "Harui").ID },
+                new Department { Name = "Economics",   Budget = 100000,
+                    StartDate = DateTime.Parse("2007-09-01"),
+                    InstructorID  = instructors.Single( i => i.LastName == "Kapoor").ID }
+            };
+
+            foreach (Department d in departments)
+            {
+                context.Departments.Add(d);
+            }
+            context.SaveChanges();
+
+            var courses = new Course[]
+            {
+                new Course {CourseID = 1050, Title = "Chemistry",      Credits = 3,
+                    DepartmentID = departments.Single( s => s.Name == "Engineering").DepartmentID
+                },
+                new Course {CourseID = 4022, Title = "Microeconomics", Credits = 3,
+                    DepartmentID = departments.Single( s => s.Name == "Economics").DepartmentID
+                },
+                new Course {CourseID = 4041, Title = "Macroeconomics", Credits = 3,
+                    DepartmentID = departments.Single( s => s.Name == "Economics").DepartmentID
+                },
+                new Course {CourseID = 1045, Title = "Calculus",       Credits = 4,
+                    DepartmentID = departments.Single( s => s.Name == "Mathematics").DepartmentID
+                },
+                new Course {CourseID = 3141, Title = "Trigonometry",   Credits = 4,
+                    DepartmentID = departments.Single( s => s.Name == "Mathematics").DepartmentID
+                },
+                new Course {CourseID = 2021, Title = "Composition",    Credits = 3,
+                    DepartmentID = departments.Single( s => s.Name == "English").DepartmentID
+                },
+                new Course {CourseID = 2042, Title = "Literature",     Credits = 4,
+                    DepartmentID = departments.Single( s => s.Name == "English").DepartmentID
+                },
+            };
+
+            foreach (Course c in courses)
+            {
+                context.Courses.Add(c);
+            }
+            context.SaveChanges();
+
+            var officeAssignments = new OfficeAssignment[]
+            {
+                new OfficeAssignment {
+                    InstructorID = instructors.Single( i => i.LastName == "Fakhouri").ID,
+                    Location = "Smith 17" },
+                new OfficeAssignment {
+                    InstructorID = instructors.Single( i => i.LastName == "Harui").ID,
+                    Location = "Gowan 27" },
+                new OfficeAssignment {
+                    InstructorID = instructors.Single( i => i.LastName == "Kapoor").ID,
+                    Location = "Thompson 304" },
+            };
+
+            foreach (OfficeAssignment o in officeAssignments)
+            {
+                context.OfficeAssignments.Add(o);
+            }
+            context.SaveChanges();
+
+            var courseInstructors = new CourseAssignment[]
+            {
+                new CourseAssignment {
+                    CourseID = courses.Single(c => c.Title == "Chemistry" ).CourseID,
+                    InstructorID = instructors.Single(i => i.LastName == "Kapoor").ID
+                    },
+                new CourseAssignment {
+                    CourseID = courses.Single(c => c.Title == "Chemistry" ).CourseID,
+                    InstructorID = instructors.Single(i => i.LastName == "Harui").ID
+                    },
+                new CourseAssignment {
+                    CourseID = courses.Single(c => c.Title == "Microeconomics" ).CourseID,
+                    InstructorID = instructors.Single(i => i.LastName == "Zheng").ID
+                    },
+                new CourseAssignment {
+                    CourseID = courses.Single(c => c.Title == "Macroeconomics" ).CourseID,
+                    InstructorID = instructors.Single(i => i.LastName == "Zheng").ID
+                    },
+                new CourseAssignment {
+                    CourseID = courses.Single(c => c.Title == "Calculus" ).CourseID,
+                    InstructorID = instructors.Single(i => i.LastName == "Fakhouri").ID
+                    },
+                new CourseAssignment {
+                    CourseID = courses.Single(c => c.Title == "Trigonometry" ).CourseID,
+                    InstructorID = instructors.Single(i => i.LastName == "Harui").ID
+                    },
+                new CourseAssignment {
+                    CourseID = courses.Single(c => c.Title == "Composition" ).CourseID,
+                    InstructorID = instructors.Single(i => i.LastName == "Abercrombie").ID
+                    },
+                new CourseAssignment {
+                    CourseID = courses.Single(c => c.Title == "Literature" ).CourseID,
+                    InstructorID = instructors.Single(i => i.LastName == "Abercrombie").ID
+                    },
+            };
+
+            foreach (CourseAssignment ci in courseInstructors)
+            {
+                context.CourseAssignments.Add(ci);
+            }
+            context.SaveChanges();
+
+            var enrollments = new Enrollment[]
+            {
+                new Enrollment {
+                    StudentID = students.Single(s => s.LastName == "Alexander").ID,
+                    CourseID = courses.Single(c => c.Title == "Chemistry" ).CourseID,
+                    Grade = Grade.A
+                },
+                    new Enrollment {
+                    StudentID = students.Single(s => s.LastName == "Alexander").ID,
+                    CourseID = courses.Single(c => c.Title == "Microeconomics" ).CourseID,
+                    Grade = Grade.C
+                    },
+                    new Enrollment {
+                    StudentID = students.Single(s => s.LastName == "Alexander").ID,
+                    CourseID = courses.Single(c => c.Title == "Macroeconomics" ).CourseID,
+                    Grade = Grade.B
+                    },
+                    new Enrollment {
+                        StudentID = students.Single(s => s.LastName == "Alonso").ID,
+                    CourseID = courses.Single(c => c.Title == "Calculus" ).CourseID,
+                    Grade = Grade.B
+                    },
+                    new Enrollment {
+                        StudentID = students.Single(s => s.LastName == "Alonso").ID,
+                    CourseID = courses.Single(c => c.Title == "Trigonometry" ).CourseID,
+                    Grade = Grade.B
+                    },
+                    new Enrollment {
+                    StudentID = students.Single(s => s.LastName == "Alonso").ID,
+                    CourseID = courses.Single(c => c.Title == "Composition" ).CourseID,
+                    Grade = Grade.B
+                    },
+                    new Enrollment {
+                    StudentID = students.Single(s => s.LastName == "Anand").ID,
+                    CourseID = courses.Single(c => c.Title == "Chemistry" ).CourseID
+                    },
+                    new Enrollment {
+                    StudentID = students.Single(s => s.LastName == "Anand").ID,
+                    CourseID = courses.Single(c => c.Title == "Microeconomics").CourseID,
+                    Grade = Grade.B
+                    },
+                new Enrollment {
+                    StudentID = students.Single(s => s.LastName == "Barzdukas").ID,
+                    CourseID = courses.Single(c => c.Title == "Chemistry").CourseID,
+                    Grade = Grade.B
+                    },
+                    new Enrollment {
+                    StudentID = students.Single(s => s.LastName == "Li").ID,
+                    CourseID = courses.Single(c => c.Title == "Composition").CourseID,
+                    Grade = Grade.B
+                    },
+                    new Enrollment {
+                    StudentID = students.Single(s => s.LastName == "Justice").ID,
+                    CourseID = courses.Single(c => c.Title == "Literature").CourseID,
+                    Grade = Grade.B
+                    }
+            };
+
+            foreach (Enrollment e in enrollments)
+            {
+                var enrollmentInDataBase = context.Enrollments.Where(
+                    s =>
+                            s.Student.ID == e.StudentID &&
+                            s.Course.CourseID == e.CourseID).SingleOrDefault();
+                if (enrollmentInDataBase == null)
+                {
+                    context.Enrollments.Add(e);
+                }
+            }
+            context.SaveChanges();
+        }
+    }
+}
+```
+
+正如您在第一篇教程中看到的， 大多数的代码只是创建一个简单的实体对象，并将数据写入对应的属性中。请注意多对多关系是如何处理的：代码通过创建 Enrollments 及 CourseAssignment 关联实体集合来创建关系。
+
+### 添加迁移
+
+保存所做更改并生成项目。然后在项目文件夹打开命令窗口，输入 migrations add 命令（暂时先别运行更新数据库的命令）：
+
+```console
+dotnet ef migrations add ComplexDataModel
+```
+
+您会收到一条可能丢失数据的警告消息。
+
+``` text
+An operation was scaffolded that may result in the loss of data. Please review the migration for accuracy.
+Done. To undo this action, use 'ef migrations remove'
+```
+
+如果您此时尝试执行数据库更新命令的话，您会收到如下错误消息：
+
+``` console
+The ALTER TABLE statement conflicted with the FOREIGN KEY constraint "FK_dbo.Course_dbo.Department_DepartmentID". The conflict occurred in database "ContosoUniversity", table "dbo.Department", column 'DepartmentID'.
+```
+
+有时候，当您在已有数据上执行迁移，为了满足外键约束，您需要在数据库中插入一些 stub data （存根数据，这个翻译并不能让人满意，目前在有关 TDD 测试驱动开发中也是用的这个翻译）。 在生成的代码中， Up 方法在 Course 表中添加了一个不可为空的 DepartmentID 外键。如果代码运行时， Course 表中已经存在数据行，则 AddColumn 操作将会失败，因为 SQL Server 不知道在那一个不可为空的列中该放入何值。 对于本教程来说，您将在一个新的数据库上运行迁移，但对于一个生产环境中的应用程序来说，您必须想办法对现有数据实现迁移，下面的说明展示一个如何执行该操作的示例。
+
+要在现有数据上让迁移顺利工作，您必须手工修改代码以提供新建列一个默认值，创建一个名为 “temp” 的存根（stub）部门用于默认部门。结果是，在 Up 方法运行后，现有的课程将全部与 “Temp” 部门关联。
+
+* 打开 {时间戳}_ComplexDataModel.cs 文件。
+
+* 注释掉在 Course 表中添加 DepartmentID 列的代码行。
+
+<pre>
+migrationBuilder.AlterColumn<string>(
+    name: "Title",
+    table: "Course",
+    maxLength: 50,
+    nullable: true,
+    oldClrType: typeof(string),
+    oldNullable: true);
+                
+    <span style="background-color: #FF0;">//migrationBuilder.AddColumn<int>(
+//    name: "DepartmentID",
+//    table: "Course",
+//    nullable: false,
+//    defaultValue: 0);</span>
+</pre>
+
+* 在创建 Department 表的代码后面，加入下方高亮代码：
+
+<pre>
+migrationBuilder.CreateTable(
+    name: "Department",
+    columns: table => new
+    {
+        DepartmentID = table.Column<int>(nullable: false)
+            .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+        Budget = table.Column<decimal>(type: "money", nullable: false),
+        InstructorID = table.Column<int>(nullable: true),
+        Name = table.Column<string>(maxLength: 50, nullable: true),
+        StartDate = table.Column<DateTime>(nullable: false)
+    },
+    constraints: table =>
+    {
+        table.PrimaryKey("PK_Department", x => x.DepartmentID);
+        table.ForeignKey(
+            name: "FK_Department_Instructor_InstructorID",
+            column: x => x.InstructorID,
+            principalTable: "Instructor",
+            principalColumn: "ID",
+            onDelete: ReferentialAction.Restrict);
+    });
+
+            
+<span style="background-color: #FF0;">migrationBuilder.Sql("INSERT INTO dbo.Department (Name, Budget, StartDate) VALUES ('Temp', 0.00, GETDATE())");
+// Default value for FK points to department created above, with
+// defaultValue changed to 1 in following AddColumn statement.
+
+migrationBuilder.AddColumn<int>(
+    name: "DepartmentID",
+    table: "Course",
+    nullable: false,
+    defaultValue: 1);</span>
+</pre>
+
+在生产环境的应用程序中，您将会编写代码或脚本添加部门及部门关联的课程。然后就不再需要 “Temp” 部门或 Course.DepartmentID 列的默认值。
+
+保存所做的更改并生成项目。
+
+## 更改连接字符串，并更新数据库
+
+现在您在 DbInitializer 类中有新代码用于添加测试数据到一个空的数据库。 要让 EF 创建一个新的空数据库， 可以通过修改 appsettings.json 中的连接字符串的数据库名称到 ContosoUniversity3 或者其他您的电脑未使用的名称。
+
+``` json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=ContosoUniversity3;Trusted_Connection=True;MultipleActiveResultSets=true"
+  },
+```
+
+保存更改到 appsettings.json 。
+
+> ### 备注
+> 作为对不断变化的数据库名称的替代方法，您可以删除数据库。 使用SQL Server 对象资源管理器(SSOX) 或database dropCLI 命令：
+> ``` console
+> dotnet ef database drop 
+> ```
+
+修改数据库名称或者删除数据库后， 在命令行窗口运行数据库更新命令以让迁移生效。
+
+``` console
+dotnet ef database update
+```
+
+运行应用程序，DbInitializer.Initialize 方法运行并填充新的数据库。
+
+在 SSOX （SQL Server 资源管理器）打开数据库， 展开表节点以查看是否已创建的所有表。（如果您的 SSOX 仍旧保留打开状态，则点击刷新按钮。）
+
+运行应用程序，触发初始化代码并填充测试数据到数据库。
+
+右键点击 CourseAssignment 表，选择“查看数据”来验证其中确有数据。
+
+## 小结
+
+现在您有了一个更复杂的数据模型和对应的数据库。在以下教程中，你将了解有关如何访问相关的数据的详细信息。
+
+
+
