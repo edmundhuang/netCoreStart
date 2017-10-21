@@ -125,8 +125,108 @@ public async Task<IActionResult> Index()
 
 ### 创建一个教师页面，其中显示课程及学生注册情况
 
+在本节中，您将会为 ```Instructor``` 实体创建一个控制器和视图用于展示教师。
 
+![instructors-index.png](./Images/instructors-index.png)
 
+本页面使用以下方法读取并展示相关数据：
 
+* 教师列表展示来自 ```OfficeAssignment``` 实体的相关数据。 ```Instructor``` 和 ```OfficeeAssignment``` 实体是 一 对 零或一 关系，对 ```OfficeAssignment``` 实体将使用贪婪加载方式。 如前所述， 当您需要主表所有行的相关数据时，贪婪加载是最高效的。 在这种情况下， 你希望显示所有教师分配的办公室。
 
+* 当用户选择一个教师时，相关的课程实体将会显示。 教师和课程实体是 “多对多” 关系。您将对课程及相关的部门实体使用贪婪加载。此时，单独的查询可能会更加高效，因为您只需要所选择教师相关的课程。 However, this example shows how to use eager loading for navigation properties within entities that are themselves in navigation properties.（To do: 这话有点意思，回头翻译）
 
+* 当用户选择一个课程时，相关的注册实体将会显示。 课程和注册实体是 “一对多” 关系。 您将会使用单独的查询来应对注册实体和相关的学生实体。
+
+#### 创建教师索引视图的视图模型
+
+教师页显示三个不同的表中的数据。因此，你创建的视图模型将包括三个属性，每个属性包含一个表的数据。
+
+在 SchoolViewModels 文件夹中，创建 InstructorIndexData.cs 并替换为以下代码：
+
+```cs 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace ContosoUniversity.Models.SchoolViewModels
+{
+    public class InstructorIndexData
+    {
+        public IEnumerable<Instructor> Instructors { get; set; }
+        public IEnumerable<Course> Courses { get; set; }
+        public IEnumerable<Enrollment> Enrollments { get; set; }
+    }
+}
+```
+#### 创建教师控制器和视图
+
+使用包含 EF 读/写 操作的控制器模板创建一个教师控制器，如下图所示：
+
+![add-instructors-controller.png](./Images/add-instructors-controller.png)
+
+打开 InstructorsController.cs 和添加 Viewmodel 命名空间引用：
+
+```cs 
+using ContosoUniversity.Models.SchoolViewModels;
+```
+
+使用以下代码替换 Index 方法，以达到相关数据的贪婪加载，并放入视图模型中。
+
+``` cs
+public async Task<IActionResult> Index(int? id, int? courseID)
+{
+    var viewModel = new InstructorIndexData();
+    viewModel.Instructors = await _context.Instructors
+          .Include(i => i.OfficeAssignment)
+          .Include(i => i.CourseAssignments)
+            .ThenInclude(i => i.Course)
+                .ThenInclude(i => i.Enrollments)
+                    .ThenInclude(i => i.Student)
+          .Include(i => i.CourseAssignments)
+            .ThenInclude(i => i.Course)
+                .ThenInclude(i => i.Department)
+          .AsNoTracking()
+          .OrderBy(i => i.LastName)
+          .ToListAsync();
+    
+    if (id != null)
+    {
+        ViewData["InstructorID"] = id.Value;
+        Instructor instructor = viewModel.Instructors.Where(
+            i => i.ID == id.Value).Single();
+        viewModel.Courses = instructor.CourseAssignments.Select(s => s.Course);
+    }
+
+    if (courseID != null)
+    {
+        ViewData["CourseID"] = courseID.Value;
+        viewModel.Enrollments = viewModel.Courses.Where(
+            x => x.CourseID == courseID).Single().Enrollments;
+    }
+
+    return View(viewModel);
+}
+```
+
+方法接受可选路由数据(id)和一个查询字符串参数(courseID)，分别对应选择的教师和选择的课程。参数从页面的超链接中而来。
+
+代码首先创建一个视图模型的实例，并在其中加入教师列表。 代码指定对 ```Instrator.OfficeAssignment``` 和 ```CourseAssignments``` 导航属性使用贪婪加载。 在 ```CourseAssignments``` 属性中，```Course``` 属性将被加载， 然后在 ```Course``` 属性中， ```Enrollments``` 和 ```Department``` 属性将会被加载，同时在每个 ```Enrollment``` 实体中， ```Student``` 属性将会被加载。
+
+```cs 
+viewModel.Instructors = await _context.Instructors
+      .Include(i => i.OfficeAssignment)
+      .Include(i => i.CourseAssignments)
+        .ThenInclude(i => i.Course)
+            .ThenInclude(i => i.Enrollments)
+                .ThenInclude(i => i.Student)
+      .Include(i => i.CourseAssignments)
+        .ThenInclude(i => i.Course)
+            .ThenInclude(i => i.Department)
+      .AsNoTracking()
+      .OrderBy(i => i.LastName)
+      .ToListAsync();
+```
+
+由于视图需要 ```OfficeAssignmet``` 实体数据， 在同一个查询中加载将会更有效率。当在网页中选择一个教师时， 需要相关的课程实体，
+Course entities are required when an instructor is selected in the web page, so a single query is better than multiple queries only if the page is displayed more often with a course selected than without.
