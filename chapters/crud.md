@@ -201,7 +201,6 @@ public class Student
 
 ![date-error.png](./Images/date-error.png)
 
-This is server-side validation that you get by default; in a later tutorial you'll see how to add attributes that will generate code for client-side validation also. The following highlighted code shows the model validation check in the Create method.
 这是您默认获得的服务器端验证; 在后面的教程中，您将看到如何添加可以生成客户端验证代码的特性。 以下代码显示了 ```Create``` 方法中的模型验证检查。
 ``` cs
 [HttpPost]
@@ -232,8 +231,6 @@ public async Task<IActionResult> Create(
 将日期更改为有效值，然后单击 ```Create```，将会看到这个新学生出现在 ```Index``` 页面中。
 
 ## 更新 ```Edit``` 页面 
-
-In StudentController.cs, the HttpGet Edit method (the one without the HttpPost attribute) uses the SingleOrDefaultAsync method to retrieve the selected Student entity, as you saw in the Details method. You don't need to change this method.
 
 在 ```StudentController.cs``` 中，```HttpGet Edit``` 方法（没有 ```HttpPost``` 特性的那个方法）使用 ```SingleOrDefaultAsync``` 方法来检索所选的 Student 实体，就像在 ```Details``` 方法中看到的那样。 您不需要更改此方法。
 
