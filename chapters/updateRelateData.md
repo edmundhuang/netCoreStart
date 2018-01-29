@@ -89,7 +89,7 @@ public async Task<IActionResult> EditPost(int? id)
 }
 ```
 
-在 ```Edit``` (HttpPost) 方法后， 创建一个新方法用于加载下拉列表的部门信息。
+在 ```Edit``` (HttpPost) 方法后， 创建一个新方法用于加载部门下拉列表。
 
 ```cs 
 private void PopulateDepartmentsDropDownList(object selectedDepartment = null)
@@ -100,5 +100,9 @@ private void PopulateDepartmentsDropDownList(object selectedDepartment = null)
     ViewBag.DepartmentID = new SelectList(departmentsQuery.AsNoTracking(), "DepartmentID", "Name", selectedDepartment);
 }
 ```
+
+`PopulateDepartmentsDropDownList` 首先获取一个基于名称排序的部门列表，再创建一个 `SelectList` 集合用于下拉列表，并此集合放在 ViewBag 中。 方法中 `selectedDepartment` 参数是可选的，允许调用代码指定下拉列表默认选中项目。视图中将 `DepartmentID` 属性传递到 `<select>` 标记帮助器，帮助器知道如何在 ViewBag 对象中寻找一个名为 "DepartmentID" 的 `SelectList`。  
+HttpGet 方法 `Create` 调用 `PopulateDepartmentsDropDownList` 方法，未设置选择项目， 因为在一个新的课程中，相关的部门尚未被创建。
+
 
 
