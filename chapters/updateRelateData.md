@@ -693,5 +693,47 @@ public ICollection<CourseAssignment> CourseAssignments
     }
 }
 ```
-如果你对 `CourseAssignments` 属性作此修改，则可以删除控制器中的显示属性初始化代码。  
+如果你对 `CourseAssignments` 属性作此修改，则可以删除控制器中的显示属性初始化代码。   
+在 `Views/Instrucotr/Create.cshtml` 文件，`Submit` 按钮前，添加一个 `办公地点` 文本框，一组课程复选框。 如同前面的编辑页面一样。
+``` html
+<div class="form-group">
+    <label asp-for="OfficeAssignment.Location" class="control-label"></label>
+    <input asp-for="OfficeAssignment.Location" class="form-control" />
+    <span asp-validation-for="OfficeAssignment.Location" class="text-danger" />
+</div>
 
+<div class="form-group">
+    <div class="col-md-offset-2 col-md-10">
+        <table>
+            <tr>
+                @{
+                    int cnt = 0;
+                    List<ContosoUniversity.Models.SchoolViewModels.AssignedCourseData> courses = ViewBag.Courses;
+
+                    foreach (var course in courses)
+                    {
+                        if (cnt++ % 3 == 0)
+                        {
+                            @:</tr><tr>
+                        }
+                        @:<td>
+                            <input type="checkbox"
+                                   name="selectedCourses"
+                                   value="@course.CourseID"
+                                   @(Html.Raw(course.Assigned ? "checked=\"checked\"" : "")) />
+                                   @course.CourseID @:  @course.Title
+                            @:</td>
+                    }
+                    @:</tr>
+                }
+        </table>
+    </div>
+</div>
+```
+运行应用进行测试，创建一个讲师。
+
+## 处理事务
+正如在 [CRUD 教程](./crud.md) 中所解释的，实体框架隐式实现了事务。 如你需要更多更好的控制 -- 例如，你希望在事务中包含在实体框架之外完成的操作 - 请参阅 [事务](https://docs.microsoft.com/ef/core/saving/transactions)。
+
+## 小结
+你现在已经完成了如何处理相关数据工作的介绍。 在下一个教程中，你将看到如何处理并发冲突。
