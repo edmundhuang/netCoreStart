@@ -128,7 +128,7 @@ public async Task<IActionResult> Index(string sortOrder, string searchString)
 
 在 Index 方法中添加 searchString 参数，此参数值来自刚刚加入视图中的文本框。同时，在 LINQ 语句中添加一个 Where 子句来选择名字 （first name 和 last name）中包含查询字符串的学生。Where 子句仅当查询字符串中有值时才生效。
 
-> ### Note
+> ### 备注
 > 在这里， 您在 IQueryable 对象上调用 Where 方法， 过滤将在服务器上进行。某些情况下，您也可能是对内存集合调用 Where 方法。（例如，假设你将 _context.Students 的引用，从 EF Dataset 修改为一个返回 IEnumerable 的仓储方法。）查询结果通常是相同的，但在某些情况下可能会有所不同。  
 > 例如，.NET Framework 实现的 Contains 方法默认区分大小写。但 SQL Server 中这取决于 SQL Server 实例的排序规则设置，该设置默认为不区分大小写。 您可以调用 ToUpper 来进行测试显式不区分大小写的方法：```Where (s = > s.LastName.ToUpper()。Contains(searchString.ToUpper())```。 这将确保如果稍后你修改代码为使用返回 IEnumerable 对象的仓储 Repository，而不是返回 IQueryable 对象时，结果保持相同。 (当您在 IEnumerable 集合上调用 Contains 方法时，使用的是 .NET Framework 实现; 而在 IQueryable 对象上，则使用 database provider 实现。) 但是，这个解决方案将对性能产生负面影响。 ```ToUpper``` 代码将在 TSQL 查询语句的 Where 条件中加入函数调用，进而导致 SQL 优化器停止使用索引。 假设 SQL 主要安装为不区分大小写，最好是避免 ToUpper 代码，直到您迁移到区分大小写的数据存储区。
 
