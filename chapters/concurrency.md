@@ -256,5 +256,339 @@ public async Task<IActionResult> Edit(int? id, byte[] rowVersion)
 }
 ```
 代码首先尝试读取要更新的部门。 如果 `SingleOrDefaultAsync` 方法返回 `null` ，则该部门被另一个用户删除。 在这种情况下，代码将使用发布的表单值创建一个部门实体，以便编辑页面可以重新显示并显示错误消息。 或者，如果只显示错误消息而不重新显示部门字段，则不必重新创建部门实体。  
-视图将原始的 RowVersion 值存储在一个隐藏字段中， 此方法在 RowVersion 参数中接收该值。 
-The view stores the original RowVersion value in a hidden field, and this method receives that value in the rowVersion parameter. Before you call SaveChanges, you have to put that original RowVersion property value in the OriginalValues collection for the entity.
+视图将原始的 RowVersion 值存储在一个隐藏字段中， `Edit` 方法在 RowVersion 参数中接收该值。 在调用 `SaveChanges` 之前，需要将原始的 `RowVersion` 属性值放入实体中。
+``` cs
+_context.Entry(departmentToUpdate).Property("RowVersion").OriginalValue = rowVersion;
+```
+这样的话，当 EF 创建 SQL Update 命令时，该命令将包含一个查找原始 RowVersion 值的 WHERE子句。 如果没有行受到 `UPDATE` 命令的影响（没有行具有原始 RowVersion 值），Entity Framework 将抛出 DbUpdateConcurrencyException 异常。
+位于异常代码块中的 catch 代码部分，获取受影响的 Department 实体，其中包含异常对象已被更新的值。
+``` cs
+var exceptionEntry = ex.Entries.Single();
+```
+`Entries` 集合中只包含一个 EntityEntry 对象。你可以使用这个对象得到用户输入的新值以及当前数据库中的值。
+``` cs
+var clientValues = (Department)exceptionEntry.Entity;
+var databaseEntry = exceptionEntry.GetDatabaseValues();
+```
+代码为 “编辑” 页面上输入的与数据库不同的值的每列添加自定义错误消息（为简洁起见，此处仅显示一个字段）。
+``` cs
+var databaseValues = (Department)databaseEntry.ToObject();
+
+if (databaseValues.Name != clientValues.Name)
+{
+    ModelState.AddModelError("Name", $"Current value: {databaseValues.Name}");
+```
+最后，代码将 departmentToUpdate 的 `RowVersion` 值设置为从数据库中检索的新值。 当重新显示编辑页面时，这个新的 `RowVersion` 值将被存储在隐藏字段中，并且当用户下次单击保存时，将只捕获自编辑页面重新显示以来发生的并发错误。
+``` cs
+departmentToUpdate.RowVersion = (byte[])databaseValues.RowVersion;
+ModelState.Remove("RowVersion");
+```
+ModelState.Remove 语句是必需的，因为 ModelState 具有旧的 RowVersion 值。 在视图中，当两者都存在时，字段的 ModelState 值优先于模型属性值。
+### 更改 Department Edit 视图
+在 `Views/Departments/Edit.cshtml` 文件中， 做如下修改：
+* 添加一个隐藏字段用于存储 `RowVersion` 属性值，紧跟在 DepartmentID 属性的隐藏字段之后。
+* 添加一个 "Select Administrator" 选项到下拉框中。
+``` html
+@model ContosoUniversity.Models.Department
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h2>Edit</h2>
+
+<h4>Department</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="DepartmentID" />
+            <input type="hidden" asp-for="RowVersion" />
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Budget" class="control-label"></label>
+                <input asp-for="Budget" class="form-control" />
+                <span asp-validation-for="Budget" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StartDate" class="control-label"></label>
+                <input asp-for="StartDate" class="form-control" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="InstructorID" class="control-label"></label>
+                <select asp-for="InstructorID" class="form-control" asp-items="ViewBag.InstructorID">
+                    <option value="">-- Select Administrator --</option>
+                </select>
+                <span asp-validation-for="InstructorID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-default" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+```
+### 在编辑页中测试并发冲突
+运行应用并转至 Department Index 页面。 右键单击编辑 Enghlist 部门并选择在新选项卡中打开，然后单击编辑 English 部门的超链接。 此时在两个浏览器选项卡显示同一条信息。
+更改第一个浏览器选项卡中的字段，然后单击保存。
+![edit-after-change-1.png](./Images/edit-after-change-1.png)
+浏览器转至 Index 页面并显示修改后的值。  
+更改第二个浏览器选项卡中的字段。  
+![edit-after-change-2.png](./Images/edit-after-change-2.png)
+单击“保存” 。 你看到一条错误消息：  
+![edit-error.png](./Images/edit-error.png)
+再次点击 `Save` 按钮， 你在第二个选项卡中输入的值将被保存。你可以在转至 Index 页面后看到保存后的值。
+## 更改 Delete 页面
+对于删除页面， EF 检测并发冲突的方式与编辑页面类似。 在显示 HttpGet Delete 页面时，视图中包含一个原始的 RowVersion 值。 当用户确认删除是，该值用于 HttpPost Delete 方法。EF 创建 SQL Delete 方法时，在 Where 子句中包含原始的 RowVersion 值。 如果命令导致零行记录受到影响（意味着在显示删除确认页面后，行记录被改变），则会抛出并发异常，调用 HttpGet Delete 方法，设置错误标志为 true ，重新显示包含错误信息的确认页面。还有一种返回零行的可能是该行被其他用户删除，在这种情况下，不会显示错误消息。
+### 更改 Department 控制器中的 Delete 方法
+在 `DepartmentsController.cs` 文件中， 使用以下代码替换 HttpGet Delete 方法：
+``` cs 
+public async Task<IActionResult> Delete(int? id, bool? concurrencyError)
+{
+    if (id == null)
+    {
+        return NotFound();
+    }
+
+    var department = await _context.Departments
+        .Include(d => d.Administrator)
+        .AsNoTracking()
+        .SingleOrDefaultAsync(m => m.DepartmentID == id);
+    if (department == null)
+    {
+        if (concurrencyError.GetValueOrDefault())
+        {
+            return RedirectToAction(nameof(Index));
+        }
+        return NotFound();
+    }
+
+    if (concurrencyError.GetValueOrDefault())
+    {
+        ViewData["ConcurrencyErrorMessage"] = "The record you attempted to delete "
+            + "was modified by another user after you got the original values. "
+            + "The delete operation was canceled and the current values in the "
+            + "database have been displayed. If you still want to delete this "
+            + "record, click the Delete button again. Otherwise "
+            + "click the Back to List hyperlink.";
+    }
+
+    return View(department);
+}
+```
+该方法接受一个可选参数，参数指示是否在并发错误之后重新显示页面。 如果此标志为真，并且指定的部门不再存在，则表示记录被其他用户删除。 这种情况下，代码将重定向到索引页面。 如果这个标志是真的，并且该部门存在，则表示其他用户修改了记录。 在这种情况下，代码使用 ViewData 向视图发送错误消息。
+用以下代码替换 HttpPost Delete 方法（名为 DeleteConfirmed ）中的代码：
+``` cs
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Delete(Department department)
+{
+    try
+    {
+        if (await _context.Departments.AnyAsync(m => m.DepartmentID == department.DepartmentID))
+        {
+            _context.Departments.Remove(department);
+            await _context.SaveChangesAsync();
+        }
+        return RedirectToAction(nameof(Index));
+    }
+    catch (DbUpdateConcurrencyException /* ex */)
+    {
+        //Log the error (uncomment ex variable name and write a log.)
+        return RedirectToAction(nameof(Delete), new { concurrencyError = true, id = department.DepartmentID });
+    }
+}
+```
+在您刚刚替换的脚手架代码中，此方法仅接受记录ID：
+``` cs
+public async Task<IActionResult> DeleteConfirmed(int id)
+```
+你将此参数修改为 Department 实体。这使 EF 除了记录键之外，还可以访问 RowVersion 属性值。
+``` cs
+public async Task<IActionResult> Delete(Department department)
+```
+您还将操作方法名称从 DeleteConfirmed 更改为 Delete 。 脚手架代码使用名称 DeleteConfirmed 给 HttpPost 方法一个唯一的签名。 （CLR要求重载的方法有不同的方法参数。）现在签名是唯一的，你可以用回 MVC 约定，使用相同 HttpPost,HttpGet Delete 方法名称。  
+如果部门已被删除，则 AnyAsync 方法返回 false ，应用程序返回到 Index 方法。  
+如果捕获并发错误，代码将重新显示 “删除确认” 页面，并提供一个标志，指示页面显示并发错误消息。  
+###更改 Delete 视图
+在 `Views/Departments/Delete.cshtml` 文件中，使用以下代码替换脚手架代码。代码添加了一个错误信息字段，DepartmentID 隐藏字段及 RowVersion 属性。 
+``` html
+@model ContosoUniversity.Models.Department
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h2>Delete</h2>
+
+<p class="text-danger">@ViewData["ConcurrencyErrorMessage"]</p>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>Department</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Budget)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Budget)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.StartDate)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.StartDate)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Administrator)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Administrator.FullName)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="DepartmentID" />
+        <input type="hidden" asp-for="RowVersion" />
+        <div class="form-actions no-color">
+            <input type="submit" value="Delete" class="btn btn-default" /> |
+            <a asp-action="Index">Back to List</a>
+        </div>
+    </form>
+</div>
+```
+这会做出以下更改：
+* 在 h2 和 h3 标题头之间，添加一错误信息。
+* 在 Administrator 字段中，用 FullName 代替 FirstMidName。
+* 移除 RowVersion 字段
+* 添加一个 隐藏的 RowVerion 属性。
+运行应用并转到部门索引页。 右键单击删除 English 部门，选择 “在新选项卡中打开超级链接”，然后在第一个选项卡中单击编辑 English 部门的超链接。  
+在第一个选项窗口中，任意修改一个值，单击 Save ：
+![edit-after-change-for-delete.png](./Images/edit-after-change-for-delete.png)
+在第二个选项卡上，单击 Delete 。 你会看到并发冲突错误信息，并看到以数据库最新值显示的 Departments 实体值。
+![delete-error.png](./Images/delete-error.png)
+如果你再次点击 Delete ，则将转至 Index 页面，并看到该部门已被删除。
+
+## 更改 Details 及 Create 视图
+您可以选择是否清理详细信息和创建视图中的脚手架代码。
+替换 Views/Departments/Details.cshtml 中的代码，删除 RowVersion 列并显示管理员的全名。
+``` html
+@model ContosoUniversity.Models.Department
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Department</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Budget)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Budget)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.StartDate)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.StartDate)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Administrator)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Administrator.FullName)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.DepartmentID">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
+```
+替换 Views/Departments/Create.cshtml 中的代码，在下拉框中添加一个选项。
+``` html
+@model ContosoUniversity.Models.Department
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h2>Create</h2>
+
+<h4>Department</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Budget" class="control-label"></label>
+                <input asp-for="Budget" class="form-control" />
+                <span asp-validation-for="Budget" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StartDate" class="control-label"></label>
+                <input asp-for="StartDate" class="form-control" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="InstructorID" class="control-label"></label>
+                <select asp-for="InstructorID" class="form-control" asp-items="ViewBag.InstructorID">
+                    <option value="">-- Select Administrator --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+```
+
+## 小结
+这章节完成了并发冲突处理的介绍。 如欲了解 EF Core 中有关并发的更多信息，请参阅 [Concurrency conflicts](https://docs.microsoft.com/ef/core/saving/concurrency) 。 下一个教程将介绍如何为 Instructor 和 Student 实体实现 Table Per Hierarchy 。
