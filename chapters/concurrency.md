@@ -15,11 +15,11 @@ Contoso 大学示例 Web 应用程序演示如何使用实体框架（EF）Core 
 锁的管理有许多缺点。一来会造成编程的复杂性。二来锁需要大量的数据库管理资源，可能会导致性能问题。由于这些原因，并不是所有的数据库管理系统都支持悲观并发。 EF Core 没有提供对它的内置支持，本教程中也不会告诉你如何实现它。
 ### 乐观并发
 替代悲观并发的是乐观并发。 乐观并发意味着允许发生并发冲突，然后在适当的情况下做出反应。 例如，Jane访问“部门编辑”页面，并将英文部门的预算金额从$ 350,000.00更改为$ 0.00。    
-![change-budget.png](./Images/change-budget.png)
+![change-budget.png](./Images/change-budget.png)  
 在 Jane 单击 `Save` 之前，John 访问同一页上，将 `Start Date` 从 9/1/2007 更改为 9/1/2013 。  
-![change-date.png](./Images/change-date.png)
+![change-date.png](./Images/change-date.png)  
 然后 Jane 先点击 `Save` 按钮进行保存，并在浏览器返回 Index 页面时看到自己所做的修改。  
-![budget-zero.png](./Images/budget-zero.png)
+![budget-zero.png](./Images/budget-zero.png)  
 然后，John 在一个仍然显示 $350,000.00 预算的 Edit 页面点击 Save 。 接下来发生的事情取决于你如何处理并发冲突。
 以下是一些可能的选项：
 * 您可以跟踪用户修改了哪个属性，并仅更新数据库中的相应列。  
@@ -101,7 +101,7 @@ dotnet ef database update
 ```
 ### 创建 Department 控制器和视图
 使用脚手架创建 Department 控制器和视图，如同前面创建 Students, Courses 和Instructors 控制器及视图一样。  
-![add-departments-controller.png](./Images/add-departments-controller.png)
+![add-departments-controller.png](./Images/add-departments-controller.png)  
 在DepartmentsController.cs文件中，将出现的四个 "FirstMidName" 更改为 "FullName" ，这样部门管理员下拉列表将包含教师的完整名称而不是只是最后一个名称。  
 ``` cs
 ViewData["InstructorID"] = new SelectList(_context.Instructors, "ID", "FullName", department.InstructorID);
@@ -345,12 +345,12 @@ ModelState.Remove 语句是必需的，因为 ModelState 具有旧的 RowVersion
 ### 在编辑页中测试并发冲突
 运行应用并转至 Department Index 页面。 右键单击编辑 Enghlist 部门并选择在新选项卡中打开，然后单击编辑 English 部门的超链接。 此时在两个浏览器选项卡显示同一条信息。
 更改第一个浏览器选项卡中的字段，然后单击保存。  
-![edit-after-change-1.png](./Images/edit-after-change-1.png)
+![edit-after-change-1.png](./Images/edit-after-change-1.png)  
 浏览器转至 Index 页面并显示修改后的值。  
 更改第二个浏览器选项卡中的字段。    
-![edit-after-change-2.png](./Images/edit-after-change-2.png)
+![edit-after-change-2.png](./Images/edit-after-change-2.png)  
 单击“保存” 。 你看到一条错误消息：    
-![edit-error.png](./Images/edit-error.png)
+![edit-error.png](./Images/edit-error.png)  
 再次点击 `Save` 按钮， 你在第二个选项卡中输入的值将被保存。你可以在转至 Index 页面后看到保存后的值。
 ## 更改 Delete 页面
 对于删除页面， EF 检测并发冲突的方式与编辑页面类似。 在显示 HttpGet Delete 页面时，视图中包含一个原始的 RowVersion 值。 当用户确认删除是，该值用于 HttpPost Delete 方法。EF 创建 SQL Delete 方法时，在 Where 子句中包含原始的 RowVersion 值。 如果命令导致零行记录受到影响（意味着在显示删除确认页面后，行记录被改变），则会抛出并发异常，调用 HttpGet Delete 方法，设置错误标志为 true ，重新显示包含错误信息的确认页面。还有一种返回零行的可能是该行被其他用户删除，在这种情况下，不会显示错误消息。
@@ -485,9 +485,9 @@ public async Task<IActionResult> Delete(Department department)
 * 添加一个 隐藏的 RowVerion 属性。
 运行应用并转到部门索引页。 右键单击删除 English 部门，选择 “在新选项卡中打开超级链接”，然后在第一个选项卡中单击编辑 English 部门的超链接。  
 在第一个选项窗口中，任意修改一个值，单击 Save ：  
-![edit-after-change-for-delete.png](./Images/edit-after-change-for-delete.png)
+![edit-after-change-for-delete.png](./Images/edit-after-change-for-delete.png)  
 在第二个选项卡上，单击 Delete 。 你会看到并发冲突错误信息，并看到以数据库最新值显示的 Departments 实体值。  
-![delete-error.png](./Images/delete-error.png)
+![delete-error.png](./Images/delete-error.png)  
 如果你再次点击 Delete ，则将转至 Index 页面，并看到该部门已被删除。
 
 ## 更改 Details 及 Create 视图
