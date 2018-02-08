@@ -204,6 +204,7 @@ dotnet ef database update
 运行应用程序并尝试使用各个页面。 一切工作正常，和以前一样。  
 在 **SQL Server Object Explorer (SQL Server 对象资源管理器)** 中，展开 Data Connections/SchoolContext，点击 Tables， 你可以看到 Student 和 Instructor 数据表已经被 Person 数据表代替。 打开 Person 表设计器，你可以看到用于 Student 和 Instructor 表的所有字段。  
 ![ssox-person-table.png](./Images/ssox-person-table.png)  
-右键点击 Person 表，再点击 “显示表数据” ，可以看到 discriminator 列中的数据。
+右键点击 Person 表，再点击 “显示表数据” ，可以看到 discriminator 列中的数据。  
+![ssox-person-data.png](./Images/ssox-person-data.png)  
 ## 小结
 在本教程中，你完成了 Person, Student 和 Instructor 类的 table-per-hierarchy (TPH) 继承。 想要知道有关 Entity Framework Core 继承方面的信息，请参阅 [Inheritance](https://docs.microsoft.com/ef/core/modeling/inheritance) 。在在下一个教程中，您将看到如何处理各种相对高级的 Entity Framework 场景。
