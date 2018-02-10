@@ -48,10 +48,10 @@ Contoso 大学示例 Web 应用程序演示如何使用实体框架（EF）Core 
 ### 创建初始迁移
 保存并编译项目。 然后打开命令窗口并导航到项目文件夹。有一种快捷方式是：
 
-* 在解决方案资源管理器，右键单击项目，然后选择 "在文件资源管理器中打开文件夹(X)"。
+* 在解决方案资源管理器，右键单击项目，然后选择 "在文件资源管理器中打开文件夹(X)"。  
 ![open-in-file-explorer.png](./Images/open-in-file-explorer.png)
 
-* 在地址栏中输入 ```cmd``` ，然后按回车键。
+* 在地址栏中输入 ```cmd``` ，然后按回车键。  
 ![open-command-window.png](./Images/open-command-window.png)
 
 在命令窗口中输入以下命令：
@@ -109,8 +109,6 @@ public partial class InitialCreate : Migration
 迁移功能在实现一个迁移的数据模型更改时，调用 ```Up``` 方法。当您输入命令要求回滚更新时，迁移功能调用 ```Down``` 方法。
 
 这些代码是当您输入 ```Migrations add InitialCreate``` 命令时用于初始化迁移。 迁移参数 （示例中的"InitialCreate"） 用于构造文件名，如果您愿意，也可以使用其他名称。选择和迁移中正要进行的工作相关的单词或短语是比较好的方式。例如，稍后您可能为一个迁移命名 “AddDepartmentTable" 。
-
-If you created the initial migration when the database already exists, the database creation code is generated but it doesn't have to run because the database already matches the data model. When you deploy the app to another environment where the database doesn't exist yet, this code will run to create your database, so it's a good idea to test it first. That's why you changed the name of the database in the connection string earlier -- so that migrations can create a new one from scratch.
 
 如果您在数据库已存在的情况下创建初始迁移，则会生成数据库创建代码，但无需运行，因为数据库已匹配数据模型。 当您在另外一个环境中部署此应用时，数据库还不存在，这些代码将会运行以创建数据库，因此最好先对这些代码进行测试。这就是为什么前面您在连接字符串中修改数据库名为另外一个名称的原因 -- 这样迁移可以从头开始创建新的数据库。
 
