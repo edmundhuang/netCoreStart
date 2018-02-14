@@ -12,7 +12,7 @@ Contoso 大学示例 Web 应用程序演示如何使用实体框架（EF）Core 
 
 在本节中，你将了解如何通过使用指定格式设置，验证和数据库的映射规则的属性来自定义数据模型。 然后在接下来的几节中，通过添加特性到类中，以及添加新的类来完成完整的 School 数据模型。
 
-#### ```DataType``` 特性（attribute）
+### ```DataType``` 特性（attribute）
 
 对于学生注册日期，目前所有的网页同时显示日期和时间，虽然您关注的只是日期。通过使用数据注解特性，您可以只在一个地方进行代码更改，然后所有显示注册日期的格式将得到修正。 为了演示如何达成此目的，您将在 ```Student``` 类的 ```EnrollementDate``` 属性上添加一个 ```Attribute``` （特性）。
 
@@ -40,7 +40,7 @@ namespace ContosoUniversity.Models
 }
 </pre>
 
-```DataType``` 特性用于指定更为准确的数据库类型。在这个例子中，我们只想跟踪日期，而不是日期和时间。 DataType 枚举中包含许多数据类型，例如 Date, Time, PhoneNumber, Currency, EmailAddress, 等等。应用程序还可通过 DataType 特性自动提供类型特定的功能。例如，可以为 DataType.EmailAddress 创建 mailto: 链接，并且可以在支持 HTML5 的浏览器中为 DataType.Date 提供日期选择器。 DataType 特性生成 HTML5 浏览器可以理解的 HTML 5 data- (发音为 data dash) 。 DataType 特性不提供任何验证。
+`DataType` 特性用于指定更为准确的数据库类型。在这个例子中，我们只想跟踪日期，而不是日期和时间。 DataType 枚举中包含许多数据类型，例如 Date, Time, PhoneNumber, Currency, EmailAddress, 等等。应用程序还可通过 DataType 特性自动提供类型特定的功能。例如，可以为 DataType.EmailAddress 创建 mailto: 链接，并且可以在支持 HTML5 的浏览器中为 DataType.Date 提供日期选择器。 DataType 特性生成 HTML5 浏览器可以理解的 HTML 5 data- (发音为 data dash) 。 DataType 特性不提供任何验证。
 
 DataType.Date 不指定显示日期的格式。 默认情况下，数据字段基于服务器 CultureInfo 的默认格式显示。
 
@@ -50,7 +50,7 @@ DisplayFormat 特性用于显式指定日期格式：
 [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
 ```
 
-```ApplyFormatInEditMode``` 设置在文本框编辑模式下也应用数据格式。（有时候您可能不愿意在某些字段上实现 -- 例如，对于货币值，您可能不想在文本框编辑模式下出现货币符号。)
+`ApplyFormatInEditMode` 设置在文本框编辑模式下也应用数据格式。（有时候您可能不愿意在某些字段上实现 -- 例如，对于货币值，您可能不想在文本框编辑模式下出现货币符号。)
 
 您可以单独使用 ```DisplayFormat``` 特性， 但通常情况下，同时使用 ```DataType``` 比较好。 ```DataType``` 特性传达的是数据的语义而不是如何在屏幕上显示，并提供了您无法从使用 ```Displayformat``` 中得到的好处：
 
@@ -96,13 +96,13 @@ namespace ContosoUniversity.Models
 }
 </pre>
 
-```StringLength``` 特性并无法阻止用户在名字中输入空格。可以使用 ```RegularExpress``` （正则表达式）特性来限制输入。例如，下面的代码要求第一个字符是大写且其余的字符都是字母：
+`StringLength` 特性并无法阻止用户在名字中输入空格。可以使用 `RegularExpress` （正则表达式）特性来限制输入。例如，下面的代码要求第一个字符是大写且其余的字符都是字母：
 
 ``` cs
 [RegularExpression(@"^[A-Z]+[a-zA-Z''-'\s]*$")]
 ```
 
-```MaxLength``` 特性提供了类似于 ```StringLength``` 特性的功能，但也没有提供客户端验证功能。
+`MaxLength` 特性提供了类似于 `StringLength` 特性的功能，但也没有提供客户端验证功能。
 
 现在，数据模型已更改，并需要将此更改反映到数据库结构中。 您将使用迁移来更新数据库结构，同时不会丢失在使用应用程序过程中已经输入数据库的数据。
 
@@ -116,7 +116,7 @@ dotnet ef migrations add MaxLengthOnNames
 dotnet ef database update
 ```
 
-```migrations add``` 命令警告说可能发生数据丢失，因为更改导致两个数据列的最大长度变短。 迁移功能创建了一个名为 ```<时间戳>_MaxLengthOnNames.cs``` 的文件。 此文件中的 ```Up``` 方法将会更新数据库结构，以匹配当前数据模型。 ```database update``` 命令负责执行此代码。
+`migrations add` 命令警告说可能发生数据丢失，因为更改导致两个数据列的最大长度变短。 迁移功能创建了一个名为 `<时间戳>_MaxLengthOnNames.cs` 的文件。 此文件中的 `Up` 方法将会更新数据库结构，以匹配当前数据模型。 `database update` 命令负责执行此代码。
 
 Entity Framework 使用迁移文件名前的时间戳对迁移进行排序。 你可以在运行 update-database 命令前, 创建多个迁移，这样所有的迁移将按照创建顺序依次应用。
 
@@ -124,11 +124,11 @@ Entity Framework 使用迁移文件名前的时间戳对迁移进行排序。 �
 
 ![string-length-errors.png](./Images/string-length-errors.png)
 
-#### ```Column``` 特性
+### `Column` 特性
 
 特性还可用于控制如何类和属性映射到数据库。假设你已将 FirstMidName 用于 first-name 字段（因为字段中还包含 middle name）。但同时你又希望数据库中的列名为 FirstName， 因为编写针对数据库查询的用户习惯于该名称。 使用 ```Column``` 特性可以达成此映射要求。
 
-```Column``` 特性指定当创建数据库时，映射到 Student表的 FirstMidName 属性将被命名为 FirstName。 换句话说， 当你的代码引用 Student.FirstMidName时， 数据读和写都是发生在 Student 表的 FirstName 列。 如果未指定列名称，系统使用属性名作为列名。
+`Column` 特性指定当创建数据库时，映射到 Student表的 FirstMidName 属性将被命名为 FirstName。 换句话说， 当你的代码引用 Student.FirstMidName时， 数据读和写都是发生在 Student 表的 FirstName 列。 如果未指定列名称，系统使用属性名作为列名。
 
 在 Student.cs 文件中， 添加 System.ComponentModel.DataAnnotations.Schema 命名空间引用，并在 FirstMidName 属性添加 ```column``` 特性，如下代码中高亮所示：
 
@@ -157,7 +157,7 @@ namespace ContosoUniversity.Models
 }
 </pre>
 
-```Column``` 特性的添加改变了 SchoolContext 的模型，导致与数据库不再匹配。
+`Column` 特性的添加改变了 SchoolContext 的模型，导致与数据库不再匹配。
 
 保存所做的更改并生成项目。 然后在项目文件夹中打开命令窗口并输入以下命令以创建另一个迁移：
 
@@ -178,7 +178,7 @@ dotnet ef database update
 > ### 备注
 > 如果您完成下列部分中创建的所有实体类之前尝试编译，可能会收到编译器错误。
 
-## 最终的 Student 实体更改 
+### 最终的 Student 实体更改 
 
 ![student-entity.png](./Images/student-entity.png)
 
@@ -222,11 +222,10 @@ namespace ContosoUniversity.Models
 }
 </pre>
 
-#### ```Required``` 特性
+### `Required` 特性
+`Required` 特性使得名字属性成为必填字段。 无需为不可为空类型指定 `Required` 特性，如值类型（Datetime, int, double, float 等。）。 不可为空类型自动被视为必填字段。
 
-```Required``` 特性使得名字属性成为必填字段。 无需为不可为空类型指定 ```Required``` 特性，如值类型（Datetime, int, double, float 等。）。 不可为空类型自动被视为必填字段。
-
-您也可以移除 ```Require``` 特性，并代之以 ```StringLenght``` 特性中的一个最小长度参数。
+您也可以移除 `Require` 特性，并代之以 `StringLenght` 特性中的一个最小长度参数。
 
 ``` cs
 [Display(Name = "Last Name")]
@@ -234,11 +233,11 @@ namespace ContosoUniversity.Models
 public string LastName { get; set; }
 ```
 
-```Display``` 特性
+`Display` 特性
 
-```Display``` 特性指定文本框的标题应为 "First Name", "Last Name", "Full Name" 及 "Enrollment Date" 而不是使用属性名。（属性名单词中没有空格）。
+`Display` 特性指定文本框的标题应为 "First Name", "Last Name", "Full Name" 及 "Enrollment Date" 而不是使用属性名。（属性名单词中没有空格）。
 
-#### FullName 计算属性
+### FullName 计算属性
 
 FullName 是一个计算属性， 由两个其他属性合并返回一个值。 因此它仅有一个 get 访问器，数据库中不会有 FullName 列生成。
 
@@ -298,9 +297,9 @@ namespace ContosoUniversity.Models
 
 ### CourseAssignments 和 OfficeAssignment 导航属性
 
-```CourseAssignments``` 和 ```OfficeAssignment``` 属性是导航属性。
+`CourseAssignments` 和 `OfficeAssignment` 属性是导航属性。
 
-一个 Instructor （教师）可以教授任意数量的 Course （课程），因此 ```CourseAssignments``` 定义为集合。
+一个 Instructor （教师）可以教授任意数量的 Course （课程），因此 `CourseAssignments` 定义为集合。
 
 ``` cs
 public ICollection<CourseAssignment> CourseAssignments { get; set; }
@@ -341,24 +340,24 @@ namespace ContosoUniversity.Models
 }
 ```
 
-#### ```Key``` 特性
+### ```Key``` 特性
 
-在 Instructor 和 OfficeAssignment 实体间有一个 “一 对 零或一” 的关系。 一个 OfficeAssignment 实体只与分配给的 Instructor 有关系，因此其主键也同时是连接到 Instructor 实体的外键。 但是， Entity Framework 无法自动识别 InstructorID 作为此实体的主键，因为其名称未遵循 ID 或 <类名>ID 的命名约定。 因此，我们使用 ```Key``` 特性来标识 InstructorID 作为主键。
+在 Instructor 和 OfficeAssignment 实体间有一个 “一 对 零或一” 的关系。 一个 OfficeAssignment 实体只与分配给的 Instructor 有关系，因此其主键也同时是连接到 Instructor 实体的外键。 但是， Entity Framework 无法自动识别 InstructorID 作为此实体的主键，因为其名称未遵循 ID 或 <类名>ID 的命名约定。 因此，我们使用 `Key` 特性来标识 InstructorID 作为主键。
 
 ``` cs
 [Key]
 public int InstructorID { get; set; }
 ```
 
-如果实体已经有主键，但你想要用不同于 <类名>ID 或 ID 的属性名的时候，你也可以使用 ```Key``` 特性。
+如果实体已经有主键，但你想要用不同于 <类名>ID 或 ID 的属性名的时候，你也可以使用 `Key` 特性。
 
-默认情况下， EF 将 ```Key``` 处理为 non-database-generated （非数据库生成），因为此列是用于识别关系。
+默认情况下， EF 将 `Key` 处理为 non-database-generated （非数据库生成），因为此列是用于识别关系。
 
-#### ```Instructor``` 导航属性
+### `Instructor` 导航属性
 
-```Instructor``` 实体有一个可为空的 OfficeAssignment 导航属性（因为教师可能没有分配一个办公室）， ```OfficeAssignment``` 实体有一个不可为空的 ```Instructor``` 导航属性（当没有教师的时候，一个 OfficeAssignment - 办公室分配不可能存在 -- InstructorID 不可为空）。 当 Instructor 实体具有相关的 OfficeAssignment 实体时，两个实体都有一个指向对方的导航属性。
+`Instructor` 实体有一个可为空的 OfficeAssignment 导航属性（因为教师可能没有分配一个办公室）， `OfficeAssignment` 实体有一个不可为空的 `Instructor` 导航属性（当没有教师的时候，一个 OfficeAssignment - 办公室分配不可能存在 -- InstructorID 不可为空）。 当 Instructor 实体具有相关的 OfficeAssignment 实体时，两个实体都有一个指向对方的导航属性。
 
-您可以在 ```Instructor``` 导航属性前加一个 ```Required``` 特性以指定必须有相关的 Instructor ， 但实际无需这样做，因为 InstructorID 外键 （同时也是此表的主键）本就是不可为空的。
+您可以在 `Instructor` 导航属性前加一个 `Required` 特性以指定必须有相关的 Instructor ， 但实际无需这样做，因为 InstructorID 外键 （同时也是此表的主键）本就是不可为空的。
 
 ## 修改 Course 实体
 
@@ -394,13 +393,13 @@ namespace ContosoUniversity.Models
 }
 </pre>
 
-```Course``` 实体有一个 DepartmentID 外键属性和一个 Department 导航属性用于指向相关的 Department 实体。
+`Course` 实体有一个 DepartmentID 外键属性和一个 Department 导航属性用于指向相关的 Department 实体。
 
 当您已经拥有相关实体的导航属性时， Entity Framework 不强求你一定要添加一个外键属性到数据模型中。 EF 可以在需要的时候自动在数据库中创建外键及外键的影子属性。 但是，数据模型中具有外键可以使更新更简单、 更高效。例如，当您提取一个 Course 实体用于编辑时， 如果你没有声明加载的话，Department 实体是空的，当您要更新 Course 实体时，您将需要先读取 Department 实体。 如果外键属性 DepartmentID 包含在数据模型中，则您无需在更新前读取 Department 实体。
 
-#### ```DatabaseGenerated``` 特性
+### `DatabaseGenerated` 特性
 
-在 CourseID 属性上标注的 ```DatabaseGenerated``` 特性与 ```None``` 参数指定主键值有用户而不是数据库生成。
+在 CourseID 属性上标注的 `DatabaseGenerated` 特性与 `None` 参数指定主键值有用户而不是数据库生成。
 
 ```cs 
 [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -410,9 +409,9 @@ public int CourseID { get; set; }
 
 默认情况下，实体框架假定主键值都由数据库生成。 这是大部分情况下您希望的。但是，对于 Course 实体， 您将使用一个用户指定的课程号码，比如 1000 系列用于一个部门，2000 系列用于另外一个部门，依此类推。
 
-```DatabaseGenerated``` 特性也可用于生成默认值， 比如在数据库中用于记录数据行创建或更新日期的列。有关详细信息，请参阅  [Generated Properties] 。
+`DatabaseGenerated` 特性也可用于生成默认值， 比如在数据库中用于记录数据行创建或更新日期的列。有关详细信息，请参阅  [Generated Properties](https://docs.microsoft.com/ef/core/modeling/generated-properties) 。
 
-#### 外键和导航属性
+### 外键和导航属性
 
 Course 实体中的外键属性和导航属性反映了以下关系：
 
@@ -473,7 +472,7 @@ namespace ContosoUniversity.Models
 }
 ```
 
-#### ```Column``` 特性
+### ```Column``` 特性
 
 早前您使用 Column 特性更改列名映射。在 Department 实体代码中， Column 特性用于更改 SQL 数据类型映射，以便此列在数据库中使用 SQL Server 的 money 类型。
 
@@ -484,7 +483,7 @@ public decimal Budget { get; set; }
 
 列映射通常并无必要， 因为 Entity Framework 会基于您给属性定义的 CLR 类型，为您选择适合的 SQL Server 数据类型。 CLR decimal 类型映射到 SQL Server 的 deccimal 类型。 不过，本例中，您指定此列将用于保存货币金额，money 数据类型更为合适。
 
-#### 外键和导航属性
+### 外键和导航属性
 
 外键和导航属性反映了以下关系：
 
@@ -540,7 +539,7 @@ namespace ContosoUniversity.Models
 }
 </pre>
 
-#### 外键和导航属性
+### 外键和导航属性
 
 外键属性和导航属性反映了以下关系：
 
@@ -558,7 +557,7 @@ public int StudentID { get; set; }
 public Student Student { get; set; }
 ```
 
-## 多对多关系
+### 多对多关系
 
 在 Student 和 Course 实体间，存在着一个多对多的关系， Enrollment 实体作为一个多对多的关联表在数据库中承载关系及相关信息。承载相关信息意味着 Enrollment 数据表除了包含关联表的外键之外，还包含其他数据。（在这里，包含一个主键和一个年级属性）
 
@@ -566,11 +565,7 @@ public Student Student { get; set; }
 
 ![student-course.png](./Images/student-course.png)
 
-Each relationship line has a 1 at one end and an asterisk (*) at the other, indicating a one-to-many relationship.
-
 每一条关系连线都有一端显示 ```1``` 和另外一端显示 ```*``` ，以表明这是一个一对多的关系。
-
-If the Enrollment table didn't include grade information, it would only need to contain the two foreign keys CourseID and StudentID. In that case, it would be a many-to-many join table without payload (or a pure join table) in the database. The Instructor and Course entities have that kind of many-to-many relationship, and your next step is to create an entity class to function as a join table without payload.
 
 假设 Enrollment 表不包括年级信息，只需要包含两个外键 CourseID 和 StudentID 。 在这种情况下， 它将是一个没有有效负载的多对多关联表（或者说是一个纯粹的关联表）。 Instructor 和 Course 实体就具有这种多对多关系， 您下一步就将创建一个没有有效负载的实体类充当关联表。
 
@@ -600,11 +595,11 @@ namespace ContosoUniversity.Models
 }
 ```
 
-#### 关联实体名称
+### 关联实体名称
 
 在数据库中需要有一个关联表用于 Instructor <-> Courses 的多对多关系， 并且以实体集合方式体现。 常规做法是命名一个关联实体 EntityName1EntityName2， 在这里就是 CourseInstructor 。 但是， 我们建议您选择一个可以描述这种关系的名称。 数据模型一开始总是简单的，然后逐步增长，从不需要有效负载的纯关联表到需要有效负载。理想状态下，关联实体将在业务领域中拥有其自然名称。例如，书籍(Books)和客户(Customers)之间可以通过评分(Ratings)进行关联。 对于当前这个关系， CourseAssignment 是一个比 CourseInstructor 更好的选择。
 
-#### 复合键
+### 复合键
 
 由于外键不可为空，并且唯一的标识每一个数据行，这儿无需一个另外的主键。 InstructorID 和 CourseID 属性可以充当复合主键。 在 EF 中标识复合主键的唯一方式是使用 Fluent API 方式 （无法通过特性标注实现）。在下一节中您将看到如何配置复合主键。
 
@@ -654,7 +649,7 @@ namespace ContosoUniversity.Data
 
 这些代码添加了新的实体，并配置 CourseAssignment 实体的复合主键。
 
-## 使用 Fluent API 代替 attributes （特性）
+### 使用 Fluent API 代替 attributes （特性）
 
 DbContext 类中的 OnModelCreating 方法使用 fluent API 配置 EF 的行为。 之所以将这些 API 称为 fluent（流畅的），因为通常用于将多个方法连接成为一条语句，比如下面这个来自 [EF Core documentation](https://docs.microsoft.com/ef/core/modeling/#methods-of-configuration) 的例子：
 
@@ -943,7 +938,7 @@ namespace ContosoUniversity.Data
 
 正如您在第一篇教程中看到的， 大多数的代码只是创建一个简单的实体对象，并将数据写入对应的属性中。请注意多对多关系是如何处理的：代码通过创建 Enrollments 及 CourseAssignment 关联实体集合来创建关系。
 
-### 添加迁移
+## 添加迁移
 
 保存所做更改并生成项目。然后在项目文件夹打开命令窗口，输入 migrations add 命令（暂时先别运行更新数据库的命令）：
 
