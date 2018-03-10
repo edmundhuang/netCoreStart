@@ -14,15 +14,15 @@ Contoso 大学示例 Web 应用程序演示如何使用实体框架（EF）Core 
 
 ORM （对象关系映射）框架，例如说 Entity Framework， 通常有多种方式用于加载实体的导航属性。
 
-* Eager loading -- 贪婪加载。 当读取实体的时候，也读取实体相关的数据。这通常导致一个单一连接查询，来取出所以需要的数据。在 Entity Framework 使用 ```Include``` 和 ```ThenInclude``` 方法来指定贪婪加载。
+* Eager loading -- 贪婪加载。 当读取实体的时候，也读取实体相关的数据。这通常导致一个单一连接查询，来取出所以需要的数据。在 Entity Framework 使用 `Include` 和 `ThenInclude` 方法来指定贪婪加载。
 ![eager-loading.png](./Images/eager-loading.png)  
-您可以在分离的查询中检索其中一些数据， 然后让 EF “修复” 导航属性。 也就是说， EF 会自动将分离查询中的实体添加到之前读取到的实体导航属性中。 对于检索相关数据的查询， 您可以使用 Load 方法代替那些返回一个 ```list``` 或 ```object``` 的方法，比如说 ```ToList``` 或 ```Single``` 。
+您可以在分离的查询中检索其中一些数据， 然后让 EF “修复” 导航属性。 也就是说， EF 会自动将分离查询中的实体添加到之前读取到的实体导航属性中。 对于检索相关数据的查询， 您可以使用 Load 方法代替那些返回一个 `list` 或 `object` 的方法，比如说 `ToList` 或 `Single` 。
 ![separate-queries.png](./Images/separate-queries.png)
 
-* Explicit loading -- 显示加载。第一次读取实体时， 相关的数据没有被检索。当您需要的时候，您需要写代码来检索相关数据。 如同在贪婪加载中使用分离查询一样，显示加载将形成多个查询送往数据库。不同之处在于，使用显示加载，代码指定的是要加载的导航属性。在 Entity Framework 1.1 中您可以使用 ```Load``` 方法来执行显示加载。例如：
+* Explicit loading -- 显示加载。第一次读取实体时， 相关的数据没有被检索。当您需要的时候，您需要写代码来检索相关数据。 如同在贪婪加载中使用分离查询一样，显示加载将形成多个查询送往数据库。不同之处在于，使用显示加载，代码指定的是要加载的导航属性。在 Entity Framework 1.1 中您可以使用 `Load` 方法来执行显示加载。例如：
 ![explicit-loading.png](./Images/explicit-loading.png)
 
-* Lazy loading -- 懒加载，或延迟加载。第一次读取实体时， 相关的数据没有被检索。但是，当您尝试访问导航属性时，导航属性相关的数据将会被自动检索出。当您首次访问导航属性时，将有一个查询发往数据库。 Entity Framework Core 1.0 不支持 ```Lazy loading``` 。
+* Lazy loading -- 懒加载，或延迟加载。第一次读取实体时， 相关的数据没有被检索。但是，当您尝试访问导航属性时，导航属性相关的数据将会被自动检索出。当您首次访问导航属性时，将有一个查询发往数据库。 Entity Framework Core 1.0 不支持 `Lazy loading` 。
 
 #### 性能注意事项
 
@@ -32,14 +32,14 @@ ORM （对象关系映射）框架，例如说 Entity Framework， 通常有多�
 
 ### 创建课程页，其中显示部门名称。
 
-```Course``` 实体包含一个导航属性，对应课程所分配部门的 ```Department``` 实体。 若要在 ```Course``` （课程）列表中显示所分配 ```Department``` （部门）的名称，您需要从 ```Course.Department``` 导航属性连接的 ```Department``` 实体中取得 ```Name``` 属性。
+`Course` 实体包含一个导航属性，对应课程所分配部门的 `Department` 实体。 若要在 `Course` （课程）列表中显示所分配 `Department` （部门）的名称，您需要从 `Course.Department` 导航属性连接的 `Department` 实体中取得 `Name` 属性。
 
-为 ```Course``` 实体类型创建一个控制器，命名为 CoursesController，使用前面教程中用于创建 Students 控制器时用的脚手架，相同的选项 -- “视图使用 Entity Framework 的 MVC 控制器”。如下所示：
+为 `Course` 实体类型创建一个控制器，命名为 CoursesController，使用前面教程中用于创建 Students 控制器时用的脚手架，相同的选项 -- “视图使用 Entity Framework 的 MVC 控制器”。如下所示：
 ![add-courses-controller.png](./Images/add-courses-controller.png)
 
-打开 ```CoursesController.cs``` 文件，检查 ```Index``` 方法。脚手架已自动使用 ```Include``` 方法指定 ```Department``` 导航属性为贪婪加载。
+打开 `CoursesController.cs` 文件，检查 `Index` 方法。脚手架已自动使用 `Include` 方法指定 `Department` 导航属性为贪婪加载。
 
-将 ```Index``` 方法替换为以下代码， 使用一个更合适的名称命名返回 ```Course``` 实体的 ```IQueryable``` 对象。
+将 `Index` 方法替换为以下代码， 使用一个更合适的名称命名返回 `Course` 实体的 `IQueryable` 对象。
 
 ```cs 
 public async Task<IActionResult> Index()
@@ -51,7 +51,7 @@ public async Task<IActionResult> Index()
 }
 ```
 
-打开 ```Views/Courses/Index.cshtl```，并使用以下代码替换模板代码。 
+打开 `Views/Courses/Index.cshtl`，并使用以下代码替换模板代码。 
 
 ``` html
 @model IEnumerable<ContosoUniversity.Models.Course>
@@ -110,28 +110,28 @@ public async Task<IActionResult> Index()
 
 您对脚手架生成的代码作了如下更改：
 
-* 修改了课程 ```Index``` 页面的标题
+* 修改了课程 `Index` 页面的标题
 
-* 添加了一列用于显示 ```CourseID``` 属性。 默认情况下， 主键不会出现在脚手架代码中，因为它们通常对最终用户无意义。 然而， 在这儿，主键是有意义的，您打算显示出来。
+* 添加了一列用于显示 `CourseID` 属性。 默认情况下， 主键不会出现在脚手架代码中，因为它们通常对最终用户无意义。 然而， 在这儿，主键是有意义的，您打算显示出来。
 
-* 修改 ```Department``` 列以显示部门名称。 代码显示加载到 ```Department``` 导航属性中 ```Department``` 实体的 ```Name``` 属性。   
+* 修改 `Department` 列以显示部门名称。 代码显示加载到 `Department` 导航属性中 `Department` 实体的 `Name` 属性。   
 ```cs
 @Html.DisplayFor(modelItem => item.Department.Name)
 ```
 
-运行应用程序，选择 ```Course``` 菜单以查看含有部门名称的列表。
+运行应用程序，选择 `Course` 菜单以查看含有部门名称的列表。
 
 ![courses-index1.png](./Images/courses-index1.png)
 
 ### 创建一个教师页面，其中显示课程及学生注册情况
 
-在本节中，您将会为 ```Instructor``` 实体创建一个控制器和视图用于展示教师。
+在本节中，您将会为 `Instructor` 实体创建一个控制器和视图用于展示教师。
 
 ![instructors-index.png](./Images/instructors-index.png)
 
 本页面使用以下方法读取并展示相关数据：
 
-* 教师列表展示来自 ```OfficeAssignment``` 实体的相关数据。 ```Instructor``` 和 ```OfficeeAssignment``` 实体是 一 对 零或一 关系，对 ```OfficeAssignment``` 实体将使用贪婪加载方式。 如前所述， 当您需要主表所有行的相关数据时，贪婪加载是最高效的。 在这种情况下， 你希望显示所有教师分配的办公室。
+* 教师列表展示来自 `OfficeAssignment` 实体的相关数据。`Instructor` 和 `OfficeeAssignment` 实体是 一 对 零或一 关系，对 `OfficeAssignment` 实体将使用贪婪加载方式。 如前所述， 当您需要主表所有行的相关数据时，贪婪加载是最高效的。 在这种情况下， 你希望显示所有教师分配的办公室。
 
 * 当用户选择一个教师时，相关的课程实体将会显示。 教师和课程实体是 “多对多” 关系。您将对课程及相关的部门实体使用贪婪加载。此时，单独的查询可能会更加高效，因为您只需要所选择教师相关的课程。 不过，这个示例主要用于展示如何对导航属性使用贪婪加载，以及对导航属性内的实体进行贪婪加载。
 
@@ -211,7 +211,7 @@ public async Task<IActionResult> Index(int? id, int? courseID)
 
 方法接受可选路由数据(id)和一个查询字符串参数(courseID)，分别对应选择的教师和选择的课程。参数从页面的超链接中而来。
 
-代码首先创建一个视图模型的实例，并在其中加入教师列表。 代码指定对 ```Instrator.OfficeAssignment``` 和 ```CourseAssignments``` 导航属性使用贪婪加载。 在 ```CourseAssignments``` 属性中，```Course``` 属性将被加载， 然后在 ```Course``` 属性中， ```Enrollments``` 和 ```Department``` 属性将会被加载，同时在每个 ```Enrollment``` 实体中， ```Student``` 属性将会被加载。
+代码首先创建一个视图模型的实例，并在其中加入教师列表。 代码指定对 `Instrator.OfficeAssignment` 和 `CourseAssignments` 导航属性使用贪婪加载。 在 `CourseAssignments` 属性中，`Course` 属性将被加载， 然后在 `Course` 属性中， `Enrollments` 和 `Department` 属性将会被加载，同时在每个 `Enrollment` 实体中， `Student` 属性将会被加载。
 
 ```cs 
 viewModel.Instructors = await _context.Instructors
@@ -228,9 +228,9 @@ viewModel.Instructors = await _context.Instructors
       .ToListAsync();
 ```
 
-由于视图始终需要 ```OfficeAssignmet``` 实体，因此在同一个查询中获取它更有效。 当在网页中选择教师时，课程实体是必需的，因此只有当页面以不是没有选择的课程更频繁地显示时，单个查询才会比多个查询更好。
+由于视图始终需要 `OfficeAssignmet` 实体，因此在同一个查询中获取它更有效。 当在网页中选择教师时，课程实体是必需的，因此只有当页面以不是没有选择的课程更频繁地显示时，单个查询才会比多个查询更好。
 
-代码中，```CourseAssignments``` 和 ```Course``` 重复出现，因为您需要 ```Course``` 的两个属性。 在第一个 ```ThenInclude``` 中获取 ```CourseAssignment.Course```, ```Course.Enrollements```, 及 ```Enrollment.Student``` 。
+代码中，`CourseAssignments` 和 `Course` 重复出现，因为您需要 `Course` 的两个属性。 在第一个 `ThenInclude` 中获取 `CourseAssignment.Course`, `Course.Enrollements`, 及 `Enrollment.Student` 。
 
 <pre>
 viewModel.Instructors = await _context.Instructors
@@ -247,7 +247,7 @@ viewModel.Instructors = await _context.Instructors
       .ToListAsync();
 </pre>
 
-在代码中的那一点，另一个 ```ThenInclude``` 将用于学生的导航属性，您不需要它。 但是，调用 ```Include``` 是由 ```Instructor``` ```属性开始的，所以你必须重新遍历整个链条，通过指定Course.Department``` 而不是 ````Course.Enrollments```` 。
+在代码中的那一点，另一个 `ThenInclude` 将用于学生的导航属性，您不需要它。 但是，调用 `Include` 是由 `Instructor` 属性开始的，所以你必须重新遍历整个链条，通过指定 `Course.Department` 而不是 `Course.Enrollments` 。
 
 <pre>
 viewModel.Instructors = await _context.Instructors
@@ -264,7 +264,7 @@ viewModel.Instructors = await _context.Instructors
       .ToListAsync();
 </pre>
 
-在选择了一个教师时，将执行下面的代码。 从教师视图模型中的列表中检索所选的教师。 然后视图模型的```Courses``` 属性和课程实体从该教师的 ```CourseAssignments``` 导航属性中一起被加载。
+在选择了一个教师时，将执行下面的代码。 从教师视图模型中的列表中检索所选的教师。 然后视图模型的`Courses` 属性和课程实体从该教师的 `CourseAssignments` 导航属性中一起被加载。
 
 ```cs
 if (id != null)
@@ -276,10 +276,10 @@ if (id != null)
 }
 ```
 
-```Where``` 方法返回一个集合，但在本例中，传递给该方法的条件只会返回一个 ```Instructor``` 实体。 ```Single``` 方法将集合转换为单个 ```Instructor``` 实体， 这样一来，您就可以访问该实体的 ```CourseAssignments``` 属性。 ```CourseAssignments``` 包含 ```CourseAssignments``` 实体集合，从中得到相关的 ```Course``` 实体集。
+`Where` 方法返回一个集合，但在本例中，传递给该方法的条件只会返回一个 `Instructor` 实体。 `Single` 方法将集合转换为单个 `Instructor` 实体， 这样一来，您就可以访问该实体的 `CourseAssignments` 属性。 `CourseAssignments` 包含 `CourseAssignments` 实体集合，从中得到相关的 `Course` 实体集。
 
 
-当您知道集合将只有一个项目时，您可以在集合上使用 ```Single``` `方法。如果传递给它的集合为空，或者有多个项目， ```Single``` 方法会抛出异常。一个替代方法是 ```SingleOrDefault``` ，如果集合是空的，它返回一个默认值（在这种情况下为null）。 但是，在这种情况下，仍然会导致异常（尝试在空引用上查找Courses属性），并且异常消息将不太清楚地指出问题的原因。 当您调用 ```Single``` 方法时，您还可以传递 ```Where``` 条件，而无需单独调用 ```Where``` 方法：
+当您知道集合将只有一个项目时，您可以在集合上使用 `Single` 方法。如果传递给它的集合为空，或者有多个项目， `Single` 方法会抛出异常。一个替代方法是 `SingleOrDefault` ，如果集合是空的，它返回一个默认值（在这种情况下为null）。 但是，在这种情况下，仍然会导致异常（尝试在空引用上查找Courses属性），并且异常消息将不太清楚地指出问题的原因。 当您调用 `Single` 方法时，您还可以传递 `Where` 条件，而无需单独调用 `Where` 方法：
 
 ```cs
 .Single(i => i.ID == id.Value)
@@ -373,11 +373,11 @@ if (courseID != null)
 
 你对现有代码做出以下更改：
 
-* 修改页面 model 类为 ```InstructorIndexData```。
+* 修改页面 model 类为 `InstructorIndexData`。
 
-* 修改页面标题为 ```Instructors``` 。
+* 修改页面标题为 `Instructors` 。
 
-* 在 ```item.OfficeAssignment``` 不为空的情况下，才添加一个 ```Office``` 列，显示 ```item.OfficeAssignment.Location``` 。 （因为这是一个 "一 对 零或一" 的关系，可能没有相关的 ```OfficeAssignment``` 实体。）
+* 在 `item.OfficeAssignment` 不为空的情况下，才添加一个 `Office` 列，显示 `item.OfficeAssignment.Location` 。 （因为这是一个 "一 对 零或一" 的关系，可能没有相关的 `OfficeAssignment` 实体。）
   ```cs
   @if (item.OfficeAssignment != null)
   {
@@ -387,7 +387,7 @@ if (courseID != null)
 
 * 添加了一个课程列，显示每个教师所教授的课程。 请参阅 [使用 @: 的显式行转换](https://docs.microsoft.com/en-us/aspnet/core/mvc/views/razor#explicit-line-transition-with-) 有关此 Razor 语法的更多信息。
 
-* 添加的代码动态地将 ```class =“success”``` 添加到所选教师的 ```tr``` 元素中。 这将会通过 Bootstrap 类为选择行设置一个背景颜色。
+* 添加的代码动态地将 `class =“success”` 添加到所选教师的 `tr` 元素中。 这将会通过 Bootstrap 类为选择行设置一个背景颜色。
   ``` html
   string selectedRow = "";
   if (item.ID == (int?)ViewData["InstructorID"])
@@ -397,17 +397,17 @@ if (courseID != null)
   <tr class="@selectedRow">
   ```
 
-* 在每行中的其他链接前，添加一个新的超链接 "Select" ，将所选教师的 ```ID``` 发送到 ```Index``` 方法。
+* 在每行中的其他链接前，添加一个新的超链接 "Select" ，将所选教师的 `ID` 发送到 `Index` 方法。
   ```html
   <a asp-action="Index" asp-route-id="@item.ID">Select</a> |
   ```
 
 
-运行应用程序，选择 ```Instructor``` 链接。  当没有相关的 ```OfficeAssignment``` 实体时，该页面显示相关 ```OfficeAssignment``` 实体的 ```Location``` 属性和一个空表单元格。
+运行应用程序，选择 `Instructor` 链接。  当没有相关的 `OfficeAssignment` 实体时，该页面显示相关 `OfficeAssignment` 实体的 `Location` 属性和一个空表单元格。
 
 ![instructors-index-no-selection.png](./Images/instructors-index-no-selection.png)
 
-在 ```Views/Instructors/Index.cshtml``` 文件中，在 </table> 标签（文件末尾）后添加以下代码。 该代码显示了当教师选择时与教练相关的课程列表。
+在 `Views/Instructors/Index.cshtml` 文件中，在 </table> 标签（文件末尾）后添加以下代码。 该代码显示了当教师选择时与教练相关的课程列表。
 
 ``` html
 @if (Model.Courses != null)
@@ -448,7 +448,7 @@ if (courseID != null)
 }
 ```
 
-此代码读取视图模型的 ```Courses``` 属性以显示课程列表。它还提供一个选择超链接，将所选课程的 ```ID``` 发送到 ```Index``` 操作方法。
+此代码读取视图模型的 `Courses` 属性以显示课程列表。它还提供一个选择超链接，将所选课程的 `ID` 发送到 `Index` 操作方法。
 
 刷新页面并选择一个教练。 现在，您看到一个网格，显示分配给所选教师的课程，并且每个课程都会看到所分配部门的名称。
 
@@ -482,7 +482,7 @@ if (courseID != null)
 }
 ```
 
-该代码读取视图模型的 ```Enrollments``` 属性，以显示在课程中注册的学生列表。
+该代码读取视图模型的 `Enrollments` 属性，以显示在课程中注册的学生列表。
 
 再次刷新页面并选择一个教师。 然后选择一个课程，查看注册学生及其成绩的列表。
 
@@ -490,9 +490,9 @@ if (courseID != null)
 
 ### 显式加载
 
-当您在 ```InstructorsController.cs``` 中检索到教师列表时，您为 ```CourseAssignments``` 导航属性指定了贪婪加载。
+当您在 `InstructorsController.cs` 中检索到教师列表时，您为 `CourseAssignments` 导航属性指定了贪婪加载。
 
-假设您期望用户很少想要在选定的教练和课程中看到注册。 在这种情况下，您可能只需要请求加载注册数据。 要查看如何进行显式加载的示例，请使用以下代码替换 ```Index``` 方法，这将删除 ```Enrollments``` 的贪婪加载然后显式加载该属性。 更改的代码高亮显示。
+假设您期望用户很少想要在选定的教练和课程中看到注册。 在这种情况下，您可能只需要请求加载注册数据。 要查看如何进行显式加载的示例，请使用以下代码替换 `Index` 方法，这将删除 `Enrollments` 的贪婪加载然后显式加载该属性。 更改的代码高亮显示。
 
 <pre>
 public async Task<IActionResult> Index(int? id, int? courseID)
@@ -531,9 +531,9 @@ public async Task<IActionResult> Index(int? id, int? courseID)
 </pre>
 
 
-新代码从用于检索教师实体的代码中删除 ```Enrollment``` 数据的 ```ThenInclude``` 方法调用。如果选择了教员和课程，高亮部分的代码将检索所选课程的注册实体，以及每个注册的学生实体。
+新代码从用于检索教师实体的代码中删除 `Enrollment` 数据的 `ThenInclude` 方法调用。如果选择了教员和课程，高亮部分的代码将检索所选课程的注册实体，以及每个注册的学生实体。
 
-运行应用程序，选择 ```Instructor``` 链接。 可以看到，虽然您已经更改了数据的检索方式， 页面上显示的内容并没有任何区别于之前的。
+运行应用程序，选择 `Instructor` 链接。 可以看到，虽然您已经更改了数据的检索方式， 页面上显示的内容并没有任何区别于之前的。
 
 ### 小结
 
