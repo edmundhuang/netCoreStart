@@ -290,11 +290,9 @@ ModelState.Remove 语句是必需的，因为 ModelState 具有旧的 RowVersion
 * 添加一个 "Select Administrator" 选项到下拉框中。
 ``` html
 @model ContosoUniversity.Models.Department
-
 @{
     ViewData["Title"] = "Edit";
 }
-
 <h2>Edit</h2>
 
 <h4>Department</h4>

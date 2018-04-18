@@ -11,9 +11,9 @@ Contoso 大学示例 Web 应用程序演示如何使用实体框架（EF）Core 
 
 ## 自定义课程的 "创建" 和 "编辑" 页面
 
-创建新的课程实体时，必须关联到一个现有的部门。为了方便起见，脚手架代码包括控制器方法和创建和编辑视图，其中包含用于选择部门的下拉列表。 下拉列表设置 ```Course.DepartmentID``` 外键属性，而这正是 Entity Framework 需要以便加载 ```Department``` 导航属性及其对应的 ```Department``` 实体。您将使用脚手架代码，但稍稍更改以添加错误处理并对下拉列表进行排序。
+创建新的课程实体时，必须关联到一个现有的部门。为了方便起见，脚手架代码包括控制器方法和创建和编辑视图，其中包含用于选择部门的下拉列表。 下拉列表设置 `Course.DepartmentID` 外键属性，而这正是 Entity Framework 需要以便加载 `Department` 导航属性及其对应的 `Department` 实体。您将使用脚手架代码，但稍稍更改以添加错误处理并对下拉列表进行排序。
 
-在 ```CoursesController.cs``` 中，删除四个 ```Create``` 和 ```Edit``` 方法，并使用以下代码替换它们：
+在 `CoursesController.cs` 中，删除四个 `Create` 和 `Edit` 方法，并使用以下代码替换它们：
 
 ``` cs
 public IActionResult Create()
@@ -89,7 +89,7 @@ public async Task<IActionResult> EditPost(int? id)
 }
 ```
 
-在 ```Edit``` (HttpPost) 方法后， 创建一个新方法用于加载部门下拉列表。
+在 `Edit` (HttpPost) 方法后， 创建一个新方法用于加载部门下拉列表。
 
 ```cs 
 private void PopulateDepartmentsDropDownList(object selectedDepartment = null)
@@ -132,9 +132,7 @@ public async Task<IActionResult> Edit(int? id)
 }
 ```
 
-```Create``` 及```Edit``` 方法(HttpPost) 中还包含了当页面出现错误时，用于重新显示页面时设置 `选中` 项目的代码， 以确保当页面显示错误信息时，不管原来选中的部门是什么，仍然保持选中的状态。
-
-
+`Create` 及`Edit` 方法(HttpPost) 中还包含了当页面出现错误时，用于重新显示页面时设置 `选中` 项目的代码， 以确保当页面显示错误信息时，不管原来选中的部门是什么，仍然保持选中的状态。  
 ### 添加 `.AsNoTracking` 到 `Details` 及 `Delete` 方法  
 为优化 `Details` 及 `Delete` 页面的性能，在方法中添加 `AsNoTracking` 调用。
 ``` cspublic async Task<IActionResult> Details(int? id)
@@ -247,13 +245,12 @@ public async Task<IActionResult> Delete(int? id)
 </div>
 ```
 
-在 `Views/Courses/Details.cshtml` 文件中，做同样的修改。
-
+在 `Views/Courses/Details.cshtml` 文件中，做同样的修改。  
 ### 测试 `Course (课程)` 页面
-运行应用， 选择 `Courses` 菜单， 点击 `Create New`， 并输入一个新课程数据。
-![course-create](./Images/course-create.png)
+运行应用， 选择 `Courses` 菜单， 点击 `Create New`， 并输入一个新课程数据。  
+![course-create](./Images/course-create.png) 
 点击 `Create` 按钮， 新课程添加到列表并显示于 `Index` 页面。 列表中的部门名称来自于导航属性， 可以看出关系已正确建立。  
-在 `Index` 页面点击其中一个课程的 `Edit` 按钮。
+在 `Index` 页面点击其中一个课程的 `Edit` 按钮。  
 ![course-edit](./Images/course-edit.png)
 修改页面中的数据，点击 `Save` 。 可以看到 `Index` 页面显示的是更改修改过的数据。
 
