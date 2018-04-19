@@ -287,7 +287,8 @@ ModelState.Remove 语句是必需的，因为 ModelState 具有旧的 RowVersion
 ### 更改 Department Edit 视图
 在 `Views/Departments/Edit.cshtml` 文件中， 做如下修改：
 * 添加一个隐藏字段用于存储 `RowVersion` 属性值，紧跟在 DepartmentID 属性的隐藏字段之后。
-* 添加一个 "Select Administrator" 选项到下拉框中。
+* 添加一个 "Select Administrator" 选项到下拉框中。  
+
 ``` html  
 @model ContosoUniversity.Models.Department
 @{
