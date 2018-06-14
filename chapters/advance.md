@@ -1,4 +1,4 @@
-# 高级主题
+# 进阶主题
 Contoso 大学示例 Web 应用程序演示如何使用实体框架（EF）Core 2.0 和 Visual Studio 2017 创建 ASP.NET Core 2.0 MVC Web 应用程序。 如欲了解更多本教程相关信息，请参阅 [一、入门](./chapters/start.md)。  
 在前面的教程中，您实现了 Table-per-Hierarchy 继承。 本教程介绍几个有用的知识点，当您掌握如何使用 Entity Framework Core 开发 ASP.NET Core Web 应用并进行部署的基础知识后， 需要了解这些主题。
 ### 原始 SQL 查询
@@ -80,9 +80,9 @@ using System.Data.Common;
 运行应用并转到关于页面。 它显示与以前一样的数据。  
 ![about.png](./Images/about.png)  
 ### 调用更新查询
-假设 Contoso 大学的管理员希望在数据库中执行全局更改，例如更改每门课程的学分数。 如果大学有大量的课程，将它们全部作为实体进行检索并单独进行更改将是低效的。 在本节中，您将实现一个网页，使用户能够指定一个因子来更改所有课程的学分数，然后通过执行 SQL UPDATE 语句来进行更改。 该网页如下图所示：  
-![update-credits.png](./Images/update-credits.png)  
-在 CoursesContoller.cs 中，为 HttpGet 和 HttpPost 添加 UpdateCourseCredits 方法：
+假设 Contoso 大学的管理员希望在数据库中执行全局更改，例如更改每门课程的学分数。 如果大学有大量的课程，将它们全部作为实体进行检索并单独进行更改将是低效的。 在本节中，您将实现一个网页，使用户能够指定一个因子来更改所有课程的学分数，然后通过执行 SQL UPDATE 语句来进行更改。 该网页如下图所示：   
+![update-credits.png](./Images/update-credits.png)    
+在 CoursesContoller.cs 中，为 HttpGet 和 HttpPost 添加 UpdateCourseCredits 方法：  
 ``` cs
 public IActionResult UpdateCourseCredits()
 {
