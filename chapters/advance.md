@@ -83,6 +83,7 @@ using System.Data.Common;
 假设 Contoso 大学的管理员希望在数据库中执行全局更改，例如更改每门课程的学分数。 如果大学有大量的课程，将它们全部作为实体进行检索并单独进行更改将是低效的。 在本节中，您将实现一个网页，使用户能够指定一个因子来更改所有课程的学分数，然后通过执行 SQL UPDATE 语句来进行更改。 该网页如下图所示：   
 ![update-credits.png](./Images/update-credits.png)    
 在 CoursesContoller.cs 中，为 HttpGet 和 HttpPost 添加 UpdateCourseCredits 方法：  
+
 ``` cs
 public IActionResult UpdateCourseCredits()
 {
@@ -101,7 +102,7 @@ public async Task<IActionResult> UpdateCourseCredits(int? multiplier)
     }
     return View();
 }
-```
+```  
 当控制器处理 HttpGet 请求时，ViewData [“RowsAffected”] 中将不返回任何内容，视图显示一个空的文本框和一个提交按钮，如上图所示。  
 当点击 Update 按钮时，HttpPost 方法被调用， 参数 multiplier 得到文本框中输入的值。 然后代码执行 SQL 更新 Courses 数据表，并将受影响的行数返回到 ViewData 供视图使用。 当视图获得 RowsAffected 值时，显示更新的行数。  
 在解决方案资源管理器中，右键单击 Views/Courses 文件夹，然后单击 添加>新建项。
